@@ -1,0 +1,14 @@
+# Node
+node_modules/
+package-lock.json
+
+# Vite / 构建产物
+build/
+src/
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/gen/schemas/
+
+# 系统
+.DS_Store

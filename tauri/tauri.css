@@ -1,0 +1,41 @@
+/* ============================================================
+   tauri.css — DevPet Tauri 桌面壳补充样式
+   仅作用于 Tauri 桌面环境（浏览器运行 devpet/ 时不受影响）
+   ============================================================ */
+
+/* 桌面壳专属控件默认隐藏，检测到 Tauri 环境后由 JS 显示 */
+.tauri-only {
+  display: none;
+}
+html.tauri .tauri-only {
+  display: inline-flex;
+}
+
+/* 无边框 + 透明窗口下的背景与圆角 */
+html.tauri body {
+  background: transparent;
+  border-radius: 16px;
+}
+
+/* 桌面模式时 dashboard 面板更贴合浮窗 */
+html.tauri .dashboard {
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* 拖拽标题区（无边框窗口需要可拖动区域）—— 应用到吉祥物头部 */
+html.tauri #mascot {
+  -webkit-app-region: drag;
+  cursor: grab;
+}
+html.tauri #mascot:active {
+  cursor: grabbing;
+}
+
+/* 控件按钮保持可点击（不能是拖拽区） */
+html.tauri #mascot-controls,
+html.tauri .ctrl-btn,
+html.tauri .dashboard,
+html.tauri .settings-panel {
+  -webkit-app-region: no-drag;
+}

@@ -78,6 +78,12 @@ DevPet/
 │       ├── ARCHITECTURE.md # 架构文档
 │       ├── PET_SPEC.md     # 宠物规格文档
 │       └── PROJECT_PLAN.md # 项目计划
+├── tauri/                  # Tauri 2 桌面壳（第二步）
+│   ├── index.html          # 桌面壳入口（复用 ../devpet）
+│   ├── tauri.css           # 桌面壳补充样式
+│   ├── tauri.js            # Tauri 桥接层（置顶/穿透/通知）
+│   ├── vite.config.js      # Vite 配置
+│   └── src-tauri/          # Rust 后端（窗口/托盘/通知）
 └── README.md               # 本文档
 ```
 
@@ -88,6 +94,7 @@ DevPet/
 | 项 | 选择 | 说明 |
 | --- | --- | --- |
 | 运行方式 | 纯静态 HTML/CSS/JS | 零依赖，双击即用 |
+| 桌面壳 | **Tauri 2**（Rust 后端） | 全局置顶/点击穿透/托盘/通知 |
 | 状态管理 | `localStorage` | 持久化宠物位置/心情/设置 |
 | 数据来源 | 公开 API + 离线降级 | 无 Key 也能用 |
 | 模块组织 | ES Modules（9 个模块） | 结构清晰、易维护 |
@@ -130,9 +137,9 @@ locked ─► 所有状态禁止拖拽
 - [x] **GitHub 贡献热图 + 最近提交/PR + 账号关联**
 - [x] 社交层（泡泡 / 名片 / 协作状态基础版）
 - [x] 离线降级机制
+- [x] **Tauri 2 桌面壳**：全局置顶浮窗 / 无边框透明 / 点击穿透 / 系统托盘 / 原生通知
 
 ### 规划中 🚧
-- [ ] **Tauri 2 桌面壳**：打包为原生桌面应用（DMG/EXE），真正的 always-on-top 浮窗
 - [ ] **宠物编辑器 UI**：换配色 / 表情 / 性格
 - [ ] **多宠物 / 主题市场**：社区分享 pet 配置
 - [ ] **通知集成**：Discord / Slack / Telegram 消息泡泡

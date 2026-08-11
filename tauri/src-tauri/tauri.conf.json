@@ -1,0 +1,53 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "DevPet",
+  "version": "1.1.0",
+  "identifier": "com.devpet.desktop",
+  "build": {
+    "beforeDevCommand": "npm --prefix .. run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm --prefix .. run build",
+    "frontendDist": "../src"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "DevPet · 开发者桌面宠物",
+        "width": 420,
+        "height": 720,
+        "resizable": false,
+        "fullscreen": false,
+        "alwaysOnTop": true,
+        "decorations": false,
+        "transparent": true,
+        "shadow": true,
+        "skipTaskbar": false,
+        "center": false,
+        "visible": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self' https://*.githubusercontent.com https://api.github.com https://wttr.in https://api.coingecko.com https://stooq.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; connect-src 'self' https: http: ipc: http://ipc.localhost;"
+    },
+    "trayIcon": {
+      "id": "devpet-tray",
+      "iconPath": "icons/icon.png",
+      "tooltip": "DevPet · 开发者桌面宠物"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "category": "Productivity",
+    "shortDescription": "开发者桌面宠物与信息面板",
+    "longDescription": "DevPet 是一个陪伴开发者的桌面吉祥物，集成天气、股票、加密货币、GitHub 展示、番茄钟等 Widget，并支持全局置顶、点击穿透等桌面原生能力。"
+  }
+}

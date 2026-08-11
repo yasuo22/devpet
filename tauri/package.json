@@ -1,0 +1,27 @@
+{
+  "name": "devpet-tauri",
+  "private": true,
+  "version": "1.1.0",
+  "type": "module",
+  "description": "DevPet · Tauri 2 桌面壳（Rust + Web 前端）",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "icon": "tauri icon ../../devpet/assets/favicon.svg"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-shell": "^2",
+    "@tauri-apps/plugin-store": "^2",
+    "@tauri-apps/plugin-notification": "^2"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "vite": "^6"
+  }
+}
