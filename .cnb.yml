@@ -10,8 +10,10 @@
       docker:
         image: node:20
       # 密钥仓库（存放 GITHUB_SYNC_TOKEN 等敏感信息，勿把 token 直接写进配置）
+      # 请在 CNB 新建「密钥仓库」DevPet-Secrets，并在其 main 分支 secrets.yml 中声明:
+      #   GITHUB_SYNC_TOKEN: "<你的GitHub令牌>"
       imports:
-        - https://cnb.cool/<org>/<secret-repo>/-/blob/main/secrets.yml
+        - https://cnb.cool/uzi999-2026/DevPet-Secrets/-/blob/main/secrets.yml
       stages:
         - name: install
           script: |
