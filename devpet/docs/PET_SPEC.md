@@ -99,7 +99,37 @@ GitHub Widget 包含：
 
 ## 番茄钟与桌面壳联动
 
-番茄钟会话结束时（专注→休息 或 休息→专注），`widgets.js` 调用 `window.__DEVPET_NATIVE__.notify` 向桌面壳发送**原生系统通知**；浏览器环境下降级为吉祥物泡泡提示。
+番茄钟会话结束时（专注→休息 或 休息→专注），`widgets.js` 调用 `window.__DEVPET_NATIVE__.notify` 向桌面壳发送**原生系统通知**；浏览器环境下降级为吉祥物泡泡提示。若配置了 Webhook 通知服务，同时向 Discord / Slack / Telegram 推送消息。
+
+## 主题市场（多宠物）
+
+`config.js` 的 `PRESET_PETS` 内置 5 款宠物主题：
+
+| 预设 | 名称 | 配色 | 性格 |
+| --- | --- | --- | --- |
+| classic | DevPet | 金黄 `#ffd88f` | 开朗 |
+| tech | 蓝莓 | 蓝 `#7aa2f7` | 沉稳 |
+| cute | 桃桃 | 粉 `#ffb3c8` | 元气 |
+| nature | 芽芽 | 绿 `#9be08a` | 温和 |
+| midnight | 小夜 | 紫 `#c9b8ff` | 专注 |
+
+- 设置面板「🎨 主题市场」可一键切换预设主题（实时应用到吉祥物）。
+- 支持**导出**当前宠物配置为 JSON 下载、**导入**他人分享的宠物配置（带字段校验）。
+
+## 通知服务（Webhook）
+
+设置面板「🔔 通知服务」可配置 Discord / Slack / Telegram 的 Webhook URL（存 `devpet.webhooks`）。配置后，以下事件会通过 `notifyWebhooks` 自动推送：番茄钟结束、收到点赞、协作邀请、应用启动；也支持手动发送测试消息。
+
+## 协作模式
+
+设置面板「🤝 协作模式」可设置：在线状态（在线 / 协作中 / 离开）、当前项目、正在编辑文件、队友昵称。状态保存在 `devpet.collab`，并渲染为社交名片。
+
+- **协作邀请链接**：`buildCollabInvite` 把项目与状态编码进 URL 的 `#collab=` 片段；`copyText` 一键复制。
+- **邀请检测**：打开带 `#collab=` 的链接时，`checkCollabInvite` 解析并弹出高优先级协作邀请泡泡，同时尝试向 Webhook 推送提醒。
+
+## 泡泡优先级队列
+
+社交泡泡采用优先级队列：`critical`（协作邀请 / 系统提醒）优先展示，`normal`（普通提示）与 `low`（次要提示）依次排队，同一时间仅展示一条，避免关键通知被打断。
 
 ## 无障碍
 - 吉祥物有 `aria-label`。

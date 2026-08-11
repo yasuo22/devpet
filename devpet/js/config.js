@@ -114,6 +114,75 @@ export const CONFIG = {
     { name: 'awesome-tools', description: '开发者工具合集', language: 'Markdown', stargazers_count: 128 },
     { name: 'react-starter', description: 'React 脚手架模板', language: 'TypeScript', stargazers_count: 45 },
   ],
+
+  // 主题市场：内置预设宠物主题（社区可分享/导入更多）
+  PRESET_PETS: [
+    {
+      name: 'DevPet',
+      preset: 'classic',
+      gender: 'other',
+      occupation: '开发者伙伴',
+      personality: '开朗',
+      color: { body: '#ffd88f', dark: '#f0b866' },
+      sprites: { idle: '', sleep: '💤', happy: '❤️', sad: '🌧️', working: '💻' },
+    },
+    {
+      name: '蓝莓',
+      preset: 'tech',
+      gender: 'male',
+      occupation: '系统工程师',
+      personality: '沉稳',
+      color: { body: '#7aa2f7', dark: '#3d59c1' },
+      sprites: { idle: '', sleep: '💤', happy: '⚡', sad: '🌧️', working: '🤖' },
+    },
+    {
+      name: '桃桃',
+      preset: 'cute',
+      gender: 'female',
+      occupation: '前端设计师',
+      personality: '元气',
+      color: { body: '#ffb3c8', dark: '#e77fa0' },
+      sprites: { idle: '', sleep: '💤', happy: '🌸', sad: '🌧️', working: '🎨' },
+    },
+    {
+      name: '芽芽',
+      preset: 'nature',
+      gender: 'other',
+      occupation: '开源贡献者',
+      personality: '温和',
+      color: { body: '#9be08a', dark: '#57a04a' },
+      sprites: { idle: '', sleep: '💤', happy: '🍀', sad: '🌧️', working: '🌱' },
+    },
+    {
+      name: '小夜',
+      preset: 'midnight',
+      gender: 'other',
+      occupation: '后端架构师',
+      personality: '专注',
+      color: { body: '#c9b8ff', dark: '#7a5fd0' },
+      sprites: { idle: '', sleep: '💤', happy: '✨', sad: '🌧️', working: '🌙' },
+    },
+  ],
+
+  // 通知服务（Webhook 集成，用户自管 URL）
+  NOTIFY: {
+    // 各渠道支持的 webhook 说明
+    channels: ['discord', 'slack', 'telegram'],
+    // 各渠道事件模板标题（用于 Webhook 消息）
+    messages: {
+      pomodoro: '🍅 番茄钟提醒',
+      like: '❤️ 收到点赞',
+      collab: '🤝 协作邀请',
+      boot: '🚀 宠物已启动',
+    },
+  },
+
+  // 协作模式（本地状态 + 分享链接，无服务端）
+  COLLAB: {
+    statuses: ['online', 'busy', 'away'],
+    // 默认项目信息
+    defaultProject: 'DevPet',
+  },
 };
 
 /** 天气 → 宠物情绪映射 */

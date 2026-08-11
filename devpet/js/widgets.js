@@ -361,6 +361,11 @@ export function renderPomodoro(onStateChange, mascot) {
     const native = window.__DEVPET_NATIVE__;
     const say = () => { if (mascot && typeof mascot.say === 'function') mascot.say(body); };
 
+    // 通知服务联动：若配置了 Webhook，同时推送到 Discord/Slack/Telegram
+    import('./hub.js').then((hub) => {
+      hub.notifyWebhooks('pomodoro', body);
+    }).catch(() => {});
+
     if (native && typeof native.notify === 'function') {
       // 桌面壳：发原生系统通知（并在宠物上同步提示）
       native.notify('🍅 番茄钟提醒', body).catch(say);
