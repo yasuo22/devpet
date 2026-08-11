@@ -11,6 +11,14 @@ import * as store from './store.js';
 import { getPet, savePet } from './pet.js';
 import { enqueueBubble } from './social.js';
 
+/** HTML 转义：协作状态/项目名等本地可写数据在渲染前需转义，防止 XSS。 */
+const esc = (v) => String(v ?? '')
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
 /* ================================================================
  * 一、主题市场（多宠物 / 导出导入）
  * ================================================================ */
@@ -266,10 +274,10 @@ export function renderCollabCard() {
   layer.innerHTML = `
     <div class="social-card collab-card">
       <div class="name">${dot} ${label}</div>
-      <div class="role">📁 ${c.project || '未设置项目'}</div>
+      <div class="role">📁 ${esc(c.project || '未设置项目')}</div>
       <div class="sub" style="margin-top:6px">
-        ${c.file ? `✍️ 正在编辑 <b>${c.file}</b>` : '尚未打开文件'}
-        ${c.teammate ? ` ｜ 👥 队友：${c.teammate}` : ''}
+        ${c.file ? `✍️ 正在编辑 <b>${esc(c.file)}</b>` : '尚未打开文件'}
+        ${c.teammate ? ` ｜ 👥 队友：${esc(c.teammate)}` : ''}
       </div>
     </div>
   `;

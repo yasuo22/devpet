@@ -28,7 +28,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self' https://*.githubusercontent.com https://api.github.com https://wttr.in https://api.coingecko.com https://stooq.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; connect-src 'self' https: http: ipc: http://ipc.localhost;"
+      "csp": "default-src 'self' https://*.githubusercontent.com https://api.github.com https://github.com https://wttr.in https://api.coingecko.com https://stooq.com; img-src 'self' data: https://*.githubusercontent.com https://github.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https: http: ipc: http://ipc.localhost;"
     },
     "trayIcon": {
       "id": "devpet-tray",

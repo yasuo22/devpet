@@ -181,6 +181,31 @@ locked ─► 所有状态禁止拖拽
 
 ---
 
+## 🔐 安全与部署
+
+### 部署环境
+
+- **Web 端**：`devpet/` 为纯静态应用，可直接浏览器打开或通过任意静态服务器托管，无需构建。
+- **桌面端**：`tauri/` 为 Tauri 2 桌面壳，需 `npm install` + `tauri build`（依赖 Rust 工具链与系统 WebKit 库）。
+- **CI**：仓库内置 `.cnb.yml` 流水线，在 `push` / `pull_request` 时自动执行 JS 语法校验与前端构建。
+- **忽略文件**：根级 `.gitignore` 已忽略 `node_modules`、`target`、构建产物与本地密钥。
+
+### 安全模型
+
+DevPet 是纯前端本地应用，无服务端，遵循「最小授权」原则：
+
+- **外部数据转义**：GitHub / 天气 / 行情等外部 API 返回的文本（bio、仓库描述、提交信息、城市、行情名称等）在渲染前均已 HTML 转义，防止 XSS。
+- **本地数据转义**：宠物配置、协作状态等用户可写数据（含导入的 pet 配置）在渲染进 DOM 前同样转义。
+- **Tauri CSP**：`tauri.conf.json` 的 CSP 将 `img-src` 收紧到仅 GitHub 头像/热图域，降低被注入风险。
+- **API Key**：Codex API Key 仅保存在本机浏览器 `localStorage`，请勿在共享/公共电脑上配置。
+- **Webhook**：通知 Webhook URL 由用户自行配置，请求由本机浏览器发起，仅用于事件推送。
+
+### 已知限制
+
+- 纯前端无法提供服务端会话授权，涉及敏感凭据（如 API Key）请谨慎在本机使用。
+
+---
+
 ## 📚 文档
 
 - [架构文档](devpet/docs/ARCHITECTURE.md)

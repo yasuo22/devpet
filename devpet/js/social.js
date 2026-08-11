@@ -87,6 +87,14 @@ export function clearBubbles() {
  * 渲染开发者名片（社交卡片）。
  * @param {object} profile {name, role, status}
  */
+const esc = (v) => String(v ?? '')
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+/** 渲染开发者名片（社交卡片）。数据来自本地设置，可能被改写/导入，需转义。 */
 export function renderProfileCard(profile = {}) {
   const saved = store.get('profile', {});
   const p = { ...profile, ...saved };
@@ -94,8 +102,8 @@ export function renderProfileCard(profile = {}) {
   layer().hidden = false;
   layer().innerHTML = `
     <div class="social-card">
-      <div class="name">${p.name || '开发者'}</div>
-      <div class="role">${p.role || '全栈开发者'}</div>
+      <div class="name">${esc(p.name || '开发者')}</div>
+      <div class="role">${esc(p.role || '全栈开发者')}</div>
       <div class="sub" style="margin-top:6px">
         <span style="color:${p.status === 'busy' ? 'var(--warn)' : 'var(--ok)'}">●</span>
         ${p.status === 'busy' ? '协作中' : '可协作'}

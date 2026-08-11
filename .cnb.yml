@@ -1,0 +1,55 @@
+# DevPet CI 流水线
+# devpet/ —— 纯静态 Web 应用（无构建步骤，Node 语法校验）
+# tauri/  —— Tauri 2 桌面壳（Vite 前端构建 + Rust 后端编译）
+
+"main":
+  push:
+    - name: devpet-build
+      runner:
+        cpus: 4
+      docker:
+        image: node:20
+      stages:
+        - name: install
+          script: |
+            set -e
+            npm --prefix tauri install --no-audit --no-fund
+        - name: syntax-check
+          script: |
+            set -e
+            echo "==> 校验 devpet/ 静态模块 JS 语法"
+            for f in devpet/js/*.js; do
+              node --check "$f" || exit 1
+            done
+            echo "==> 全部模块语法通过"
+        - name: build-web
+          script: |
+            set -e
+            echo "==> 构建 Tauri Web 前端"
+            npm --prefix tauri run build
+            test -d tauri/src && echo "==> 前端产物已生成到 tauri/src"
+  pull_request:
+    - name: devpet-build
+      runner:
+        cpus: 4
+      docker:
+        image: node:20
+      stages:
+        - name: install
+          script: |
+            set -e
+            npm --prefix tauri install --no-audit --no-fund
+        - name: syntax-check
+          script: |
+            set -e
+            echo "==> 校验 devpet/ 静态模块 JS 语法"
+            for f in devpet/js/*.js; do
+              node --check "$f" || exit 1
+            done
+            echo "==> 全部模块语法通过"
+        - name: build-web
+          script: |
+            set -e
+            echo "==> 构建 Tauri Web 前端"
+            npm --prefix tauri run build
+            test -d tauri/src && echo "==> 前端产物已生成到 tauri/src"

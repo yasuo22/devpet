@@ -17,6 +17,21 @@ import { getGrowthState, formatGrowthSummary, xpNeededForLevel, getLevelProgress
 
 const dashboard = () => document.getElementById('dashboard');
 
+/**
+ * HTML 转义，防止把外部/不可信数据直接插入 innerHTML 造成 XSS。
+ * 用于 GitHub API 返回的仓库描述、用户 bio、提交信息等文本字段。
+ * @param {*} v 任意值
+ * @returns {string} 转义后的字符串
+ */
+function esc(v) {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 /** 当前生效的 Widget 顺序 */
 function widgetOrder() {
   const saved = store.get('widgetOrder', []);
@@ -37,6 +52,10 @@ function widgetOrder() {
  * @returns {HTMLElement} .widget-body
  */
 function mount(id, title, icon) {
+  // 复用已存在的面板，避免定时刷新时重复累积（否则每次渲染都会追加一个新面板）
+  const existing = document.getElementById(id);
+  if (existing) existing.remove();
+
   const panel = document.createElement('section');
   panel.className = 'widget';
   panel.id = id;
@@ -130,11 +149,11 @@ export async function renderWeather(mascot) {
   const cond = cur.condition?.text || '未知';
   body.innerHTML = `
     <div class="big">${cur.temp_c ?? '-'}°C</div>
-    <div class="sub">${data.city} · ${cond}</div>
+    <div class="sub">${esc(data.city)} · ${esc(cond)}</div>
     <div style="margin-top:8px">
       ${data.forecast.map((f) => `
-        <div class="row"><span>${f.date}</span>
-        <span class="sub">${f.avgtemp_c ?? f.maxTemp}° ${f.condition?.text || ''}</span></div>`).join('')}
+        <div class="row"><span>${esc(f.date)}</span>
+        <span class="sub">${f.avgtemp_c ?? f.maxTemp}° ${esc(f.condition?.text || '')}</span></div>`).join('')}
     </div>
     ${data.offline ? '<div class="sub" style="margin-top:6px;color:var(--warn)">⚠ 离线模式</div>' : ''}
   `;
@@ -150,7 +169,7 @@ export async function renderStock() {
   body.innerHTML = list.map((s) => {
     const up = s.changePercent >= 0;
     return `<div class="row">
-      <span><strong>${s.symbol}</strong></span>
+      <span><strong>${esc(s.symbol)}</strong></span>
       <span>$${s.price.toFixed(2)}
         <span class="${up ? 'up' : 'down'}">${up ? '▲' : '▼'}${Math.abs(s.changePercent).toFixed(2)}%</span>
       </span>
@@ -167,7 +186,7 @@ export async function renderCrypto() {
   body.innerHTML = list.map((c) => {
     const up = c.change24h >= 0;
     return `<div class="row">
-      <span>${c.symbol} <span class="sub">${c.name}</span></span>
+      <span>${esc(c.symbol)} <span class="sub">${esc(c.name)}</span></span>
       <span>$${c.usd.toLocaleString()}
         <span class="${up ? 'up' : 'down'}">${up ? '▲' : '▼'}${Math.abs(c.change24h).toFixed(1)}%</span>
       </span>
@@ -198,10 +217,10 @@ export async function renderGitHub() {
   const u = ui.user;
   const head = u ? `
     <div class="gh-head">
-      ${u.avatar ? `<img class="gh-avatar" src="${u.avatar}" alt="" />` : ''}
+      ${u.avatar ? `<img class="gh-avatar" src="${esc(u.avatar)}" alt="" />` : ''}
       <div>
-        <div class="gh-user"><a href="${u.html_url}" target="_blank" rel="noopener">@${u.login}</a></div>
-        ${u.bio ? `<div class="sub">${u.bio}</div>` : ''}
+        <div class="gh-user"><a href="${esc(u.html_url)}" target="_blank" rel="noopener">@${esc(u.login)}</a></div>
+        ${u.bio ? `<div class="sub">${esc(u.bio)}</div>` : ''}
         <div class="sub gh-stats">
           <span>${u.public_repos} 仓库</span> · <span>${u.followers} 关注者</span> · <span>${u.following} 关注</span>
         </div>
@@ -235,7 +254,7 @@ export async function renderGitHub() {
           <div class="row gh-event ${ev.kind === 'pr' ? 'is-pr' : ''}">
             <span class="sub">
               ${ev.kind === 'pr' ? '🆕' : '📝'}
-              <a href="${ev.url}" target="_blank" rel="noopener">${ev.message}</a>
+              <a href="${esc(ev.url)}" target="_blank" rel="noopener">${esc(ev.message)}</a>
             </span>
           </div>
         `).join('')}
@@ -245,10 +264,10 @@ export async function renderGitHub() {
   // 仓库列表
   const reposHtml = repoData.list.map((r) => `
     <div class="row">
-      <span><strong>${r.name}</strong></span>
+      <span><strong>${esc(r.name)}</strong></span>
       <span class="val ok">★ ${r.stargazers_count}</span>
     </div>
-    <div class="sub" style="margin-bottom:6px">${r.description}</div>
+    <div class="sub" style="margin-bottom:6px">${esc(r.description)}</div>
   `).join('');
 
   body.innerHTML = `
