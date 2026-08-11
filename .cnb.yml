@@ -41,6 +41,17 @@
             username: yasuo22
             password: $GITHUB_SYNC_TOKEN
             branch: main
+        - name: 同步 Release Tag 到 GitHub
+          script: |
+            set -e
+            command -v git >/dev/null 2>&1 || { echo "==> 镜像缺少 git，安装中"; apt-get update -qq && apt-get install -y -qq git >/dev/null 2>&1; }
+            echo "==> 同步所有 Release Tag 到 GitHub"
+            # 通过 credential.helper 提供认证，避免 token 写入日志
+            git config --global credential.helper '!f() { echo "username=yasuo22"; echo "password=${GITHUB_SYNC_TOKEN}"; }; f'
+            git remote remove github 2>/dev/null || true
+            git remote add github https://github.com/yasuo22/devpet.git
+            git push --tags github
+            echo "==> Release Tag 同步完成"
   pull_request:
     - name: devpet-build
       runner:
