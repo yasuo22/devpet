@@ -1,4 +1,4 @@
-# 🐾 DevPet · 开发者桌面宠物
+# 🐾 DevPet · ChatGPT桌面宠物
 
 ![Version](https://img.shields.io/badge/version-v1.1.0-blue) ![License](https://img.shields.io/badge/license-MIT-green)
 
