@@ -15,9 +15,24 @@
       <svg id="mascot-svg" viewBox="0 0 96 96" aria-hidden="true">
         <!-- 身体 -->
         <ellipse class="body" cx="48" cy="54" rx="34" ry="32" />
+        <!-- 狸花猫条纹（仅 tabby 预设显示） -->
+        <g class="tabby-markings" style="display:none">
+          <path class="tabby-stripe" d="M40 20 Q42 26 40 32" stroke="#6b4423" stroke-width="3" fill="none" opacity="0.5"/>
+          <path class="tabby-stripe" d="M56 20 Q54 26 56 32" stroke="#6b4423" stroke-width="3" fill="none" opacity="0.5"/>
+          <path class="tabby-stripe" d="M48 22 Q50 28 48 34" stroke="#6b4423" stroke-width="3" fill="none" opacity="0.5"/>
+          <path class="tabby-stripe" d="M22 40 Q18 52 20 64" stroke="#6b4423" stroke-width="3" fill="none" opacity="0.5"/>
+          <path class="tabby-stripe" d="M74 40 Q78 52 76 64" stroke="#6b4423" stroke-width="3" fill="none" opacity="0.5"/>
+          <path class="tabby-stripe" d="M36 36 Q30 46 32 58" stroke="#6b4423" stroke-width="2" fill="none" opacity="0.35"/>
+          <path class="tabby-stripe" d="M60 36 Q66 46 64 58" stroke="#6b4423" stroke-width="2" fill="none" opacity="0.35"/>
+          <!-- 肚皮 -->
+          <ellipse class="tabby-belly" cx="48" cy="70" rx="14" ry="10" fill="#f5e6d0" opacity="0.7"/>
+        </g>
         <!-- 耳朵 -->
         <ellipse class="ear left" cx="28" cy="30" rx="10" ry="14" />
         <ellipse class="ear right" cx="68" cy="30" rx="10" ry="14" />
+        <!-- 耳朵内粉色 -->
+        <ellipse class="ear-inner left" cx="28" cy="32" rx="5" ry="8" fill="#ff9eb0" opacity="0.4" />
+        <ellipse class="ear-inner right" cx="68" cy="32" rx="5" ry="8" fill="#ff9eb0" opacity="0.4" />
         <!-- 眼睛 -->
         <circle class="eye left" cx="38" cy="48" r="5" />
         <circle class="eye right" cx="58" cy="48" r="5" />
@@ -29,6 +44,13 @@
         <circle class="blush right" cx="66" cy="58" r="4" />
         <!-- 嘴巴 -->
         <path class="mouth" d="M42 62 Q48 68 54 62" />
+        <!-- 胡须 -->
+        <g class="whiskers" style="display:none">
+          <line x1="22" y1="52" x2="36" y2="56" stroke="#333" stroke-width="1" opacity="0.5"/>
+          <line x1="22" y1="60" x2="36" y2="60" stroke="#333" stroke-width="1" opacity="0.5"/>
+          <line x1="74" y1="52" x2="60" y2="56" stroke="#333" stroke-width="1" opacity="0.5"/>
+          <line x1="74" y1="60" x2="60" y2="60" stroke="#333" stroke-width="1" opacity="0.5"/>
+        </g>
         <!-- 状态装饰（雨伞/爱心/Zzz 等由 JS 动态插入） -->
       </svg>
     </div>
@@ -60,6 +82,12 @@
       <div id="pet-preview" class="pet-preview" title="预览当前宠物">
         <svg id="pet-preview-svg" viewBox="0 0 96 96" aria-hidden="true">
           <ellipse class="body" cx="48" cy="54" rx="34" ry="32" />
+          <g class="tabby-markings" style="display:none">
+            <path class="tabby-stripe" d="M40 20 Q42 26 40 32" stroke="#6b4423" stroke-width="3" fill="none" opacity="0.5"/>
+            <path class="tabby-stripe" d="M56 20 Q54 26 56 32" stroke="#6b4423" stroke-width="3" fill="none" opacity="0.5"/>
+            <path class="tabby-stripe" d="M48 22 Q50 28 48 34" stroke="#6b4423" stroke-width="3" fill="none" opacity="0.5"/>
+            <ellipse class="tabby-belly" cx="48" cy="70" rx="14" ry="10" fill="#f5e6d0" opacity="0.7"/>
+          </g>
           <ellipse class="ear left" cx="28" cy="30" rx="10" ry="14" />
           <ellipse class="ear right" cx="68" cy="30" rx="10" ry="14" />
           <circle class="eye left" cx="38" cy="48" r="5" />

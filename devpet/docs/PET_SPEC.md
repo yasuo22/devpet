@@ -14,6 +14,7 @@
 
 ```json
 {
+  "preset": "classic",             // 预设标识（classic / tabby 等）
   "name": "DevPet",                 // 昵称
   "gender": "other",                // male | female | other
   "occupation": "开发者伙伴",         // 职业
@@ -22,10 +23,14 @@
     "body": "#ffd88f",
     "dark": "#f0b866"
   },
+  "colorExt": {                     // 扩展配色（狸花猫条纹/肚皮）
+    "stripe": "#6b4423",
+    "belly": "#f5e6d0"
+  },
   "sprites": {                      // 各状态装饰图标
     "idle": "", "sleep": "💤", "happy": "❤️", "sad": "🌧️", "working": "💻"
   },
-  "widgets": ["weather", "stock", "crypto", "github", "pomodoro"]  // 挂载的 Widget
+  "widgets": ["weather", "stock", "crypto", "github", "pomodoro", "catfood"]  // 挂载的 Widget
 }
 ```
 
@@ -37,10 +42,11 @@
 | 状态 | 触发条件 | 表现 |
 | --- | --- | --- |
 | `idle` | 默认 | 呼吸浮动、眼睛正常、偶尔眨眼 |
-| `sleep` | 闲置超过 30s | 闭眼、Zzz 冒出、整体下坠 |
+| `sleep` | 闲置超过 30s（狸花猫：15 分钟） | 闭眼、Zzz 冒出、狸花猫显示猫窝 |
 | `happy` | 天气晴好 / 点赞 / 数据刷新成功 | 眼睛变弯、出现爱心 |
 | `sad` | 天气恶劣 / 数据拉取失败 | 眉毛下垂、出现雨滴/阴云 |
 | `working` | 番茄钟运行中 | 戴帽子/专注眼神、冒汗或计时 |
+| `chase` | 狸花猫检测到用户输入活动 | 追蝴蝶、跳跳蹦蹦 |
 
 ## 天气反应
 
@@ -58,6 +64,31 @@
 3. **点击**：点击唤醒睡着的宠物、随机触发小动作。
 4. **点赞**：按钮切换 `happy` 并弹出爱心泡泡。
 5. **设置面板 / 宠物编辑器**：⚙️ 按钮打开编辑器，可自定义名称 / 性别 / 职业 / 性格 / 配色，并实时预览 + 恢复默认；同时可关联 GitHub 账号。
+
+## 彩色狸花猫（花狸）专属功能
+
+### 活动检测（追蝴蝶）
+- 当用户正在输入（键盘 / 鼠标 / 触摸 / 滚动）时，狸花猫会追着蝴蝶跑来跑去。
+- 蝴蝶动画每次持续 8 秒，间隔至少 3 秒触发一次。
+- 检测模块：`js/activity.js`。
+
+### 睡眠机制
+- 狸花猫停止输入超过 **15 分钟** 后，会在原地（猫窝 🧺）睡觉。
+- 非狸花猫保持默认 30 秒闲置超时。
+
+### 猫粮系统
+- 每消耗 1000 token 自动积累 1 克猫粮。
+- 每隔 **4 小时** 提醒投喂。
+- 猫粮存量低于阈值（30%）时提醒。
+- 猫粮档次：基础（0-10k）、三文鱼（10k-50k）、金枪鱼（50k-100k）、和牛（100k+）。
+- 模块：`js/catfood.js`。
+- Widget：`catfood` 猫粮状态面板。
+
+### 外观特征
+- 狸花猫带有额头条纹和背纹（SVG 绘制）。
+- 肚皮为浅色（奶油色）。
+- 带有胡须。
+- 耳朵内侧为粉色。
 
 ## Widget 系统
 
@@ -88,10 +119,12 @@ GitHub Widget 包含：
 | `devpet.mood` | string | 当前心情 |
 | `devpet.pomodoro` | object | 番茄钟设置与状态 |
 | `devpet.settings` | object | 主题、显示哪些 Widget 等 |
-| `devpet.pet` | object | 宠物元数据（名称/性别/职业/性格/配色/sprites/widgets） |
+| `devpet.pet` | object | 宠物元数据（名称/性别/职业/性格/配色/sprites/widgets/colorExt） |
 | `devpet.widgetOrder` | array | Widget 拖拽排序后的顺序 |
 | `devpet.githubUser` | string | 关联的 GitHub 用户名 |
 | `devpet.theme` | string | 主题（`dark` / `light`） |
+| `devpet.catActivity` | object | 用户最后活跃时间（`{lastActiveAt}`） |
+| `devpet.catfood` | object | 猫粮状态（`{totalTokens, currentFood, lastFeedAt, ...}`） |
 
 ## 主题
 
@@ -103,15 +136,16 @@ GitHub Widget 包含：
 
 ## 主题市场（多宠物）
 
-`config.js` 的 `PRESET_PETS` 内置 5 款宠物主题：
+`config.js` 的 `PRESET_PETS` 内置 6 款宠物主题：
 
-| 预设 | 名称 | 配色 | 性格 |
-| --- | --- | --- | --- |
-| classic | DevPet | 金黄 `#ffd88f` | 开朗 |
-| tech | 蓝莓 | 蓝 `#7aa2f7` | 沉稳 |
-| cute | 桃桃 | 粉 `#ffb3c8` | 元气 |
-| nature | 芽芽 | 绿 `#9be08a` | 温和 |
-| midnight | 小夜 | 紫 `#c9b8ff` | 专注 |
+| 预设 | 名称 | 配色 | 性格 | 专属功能 |
+| --- | --- | --- | --- | --- |
+| classic | DevPet | 金黄 `#ffd88f` | 开朗 | - |
+| tech | 蓝莓 | 蓝 `#7aa2f7` | 沉稳 | - |
+| cute | 桃桃 | 粉 `#ffb3c8` | 元气 | - |
+| nature | 芽芽 | 绿 `#9be08a` | 温和 | - |
+| midnight | 小夜 | 紫 `#c9b8ff` | 专注 | - |
+| tabby | **花狸** | 狸花棕 `#d9a066` | 活泼 | 追蝴蝶 / 睡猫窝 / 猫粮系统 |
 
 - 设置面板「🎨 主题市场」可一键切换预设主题（实时应用到吉祥物）。
 - 支持**导出**当前宠物配置为 JSON 下载、**导入**他人分享的宠物配置（带字段校验）。

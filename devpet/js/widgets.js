@@ -12,6 +12,7 @@ import * as store from './store.js';
 import { fetchWeather } from './weather.js';
 import { fetchCrypto, fetchStocks } from './market.js';
 import { fetchRepos, fetchContributions, fetchRecentEvents, getGitHubUser, fetchGitHubUser } from './github.js';
+import { formatFoodStatus, getFoodLevelPercent, getCurrentTier, feed } from './catfood.js';
 
 const dashboard = () => document.getElementById('dashboard');
 
@@ -388,19 +389,77 @@ export function renderPomodoro(onStateChange, mascot) {
   return { pause, start, reset };
 }
 
+/* ---------- 猫粮状态 ---------- */
+export function renderCatFood(mascot) {
+  const body = mount('widget-catfood', CONFIG.WIDGET_META.catfood.title, CONFIG.WIDGET_META.catfood.icon);
+  const status = formatFoodStatus();
+  const tier = getCurrentTier();
+  const percent = getFoodLevelPercent();
+
+  // 饥饿度状态条颜色
+  const barColor = percent <= 30 ? 'var(--bad)' : percent <= 60 ? 'var(--warn)' : 'var(--ok)';
+
+  body.innerHTML = `
+    <div class="catfood-status">
+      <div class="catfood-row">
+        <span class="catfood-tier">🐾 ${tier.name}</span>
+        <span class="catfood-percent">${percent}%</span>
+      </div>
+      <div class="catfood-bar">
+        <div class="catfood-fill" style="width:${percent}%;background:${barColor}"></div>
+      </div>
+      <div class="catfood-detail">
+        <div class="sub">累计 token：${status.state.totalTokens.toLocaleString()}</div>
+        <div class="sub">猫粮存量：${Math.round(status.state.currentFood)}g / ${status.state.maxFood}g</div>
+        <div class="sub">距上次喂食：${Math.floor((Date.now() - status.state.lastFeedAt) / (60*60*1000))} 小时</div>
+      </div>
+      <div class="btn-row" style="margin-top:8px;justify-content:flex-start">
+        <button class="btn primary btn-feed" data-feed="full">🍖 投喂</button>
+        <button class="btn" data-tokens="1000">+1k tokens</button>
+        <button class="btn" data-tokens="10000">+10k tokens</button>
+      </div>
+      <div class="catfood-tip sub" style="margin-top:6px">${tier.desc}</div>
+    </div>
+  `;
+
+  // 投喂按钮
+  body.querySelector('[data-feed]')?.addEventListener('click', () => {
+    const result = feed();
+    renderCatFood(mascot);
+    if (mascot && mascot.say) mascot.say('😋 吃饱啦！谢谢主人～');
+  });
+
+  // 模拟 token 消耗按钮（用于演示）
+  body.querySelectorAll('[data-tokens]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tokens = parseInt(btn.dataset.tokens, 10);
+      if (window.DevPet && window.DevPet.addTokens) {
+        window.DevPet.addTokens(tokens);
+      }
+      renderCatFood(mascot);
+      if (mascot && mascot.say) mascot.say(`📊 消耗了 ${tokens.toLocaleString()} tokens`);
+    });
+  });
+}
+
 /* ---------- 根据 pet.widgets 渲染所有启用的 Widget ---------- */
 export async function renderAllWidgets(mascot) {
   const order = widgetOrder();
   const enabled = getPet().widgets;
+  const pet = getPet();
+  const isTabbyCat = pet.preset === 'tabby' || pet.name === '花狸';
   const jobs = [];
   for (const key of order) {
-    if (!enabled.includes(key)) continue;
+    // 狸花猫模式始终渲染猫粮 widget
+    const shouldRender = isTabbyCat && key === 'catfood' ? true : enabled.includes(key);
+    if (!shouldRender) continue;
     switch (key) {
       case 'weather': jobs.push(renderWeather(mascot)); break;
       case 'stock': jobs.push(renderStock()); break;
       case 'crypto': jobs.push(renderCrypto()); break;
       case 'github': jobs.push(renderGitHub()); break;
       case 'pomodoro': jobs.push(Promise.resolve(renderPomodoro((m) => mascot.setMood(m, { silent: true }), mascot))); break;
+      case 'catfood': jobs.push(Promise.resolve(renderCatFood(mascot))); break;
     }
   }
   await Promise.allSettled(jobs);

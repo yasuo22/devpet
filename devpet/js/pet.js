@@ -23,6 +23,7 @@ import * as store from './store.js';
 /** 默认宠物元数据 */
 export function defaultPet() {
   return {
+    preset: 'classic',
     name: CONFIG.PET_NAME || 'DevPet',
     gender: 'other',
     occupation: '开发者伙伴',
@@ -35,7 +36,9 @@ export function defaultPet() {
       sad: '🌧️',
       working: '💻',
     },
-    widgets: [...(CONFIG.DEFAULT_WIDGET_LIST || [])],
+    // 狸花猫专用：条纹颜色 / 肚皮颜色
+    colorExt: {},  // { stripe, belly } 可选扩展字段
+    widgets: [...(CONFIG.DEFAULT_WIDGET_LIST || [])],  // 含 catfood
   };
 }
 
@@ -67,6 +70,7 @@ function normalizePet(p) {
     ? p.widgets.filter((w) => CONFIG.DEFAULT_WIDGETS[w] !== undefined)
     : dft.widgets;
   return {
+    preset: p.preset || '',
     name: p.name || dft.name,
     gender: ['male', 'female', 'other'].includes(p.gender) ? p.gender : dft.gender,
     occupation: p.occupation || dft.occupation,
@@ -74,6 +78,10 @@ function normalizePet(p) {
     color: {
       body: p.color?.body || dft.color.body,
       dark: p.color?.dark || dft.color.dark,
+    },
+    colorExt: {
+      stripe: p.colorExt?.stripe || '',
+      belly: p.colorExt?.belly || '',
     },
     sprites: { ...dft.sprites, ...(p.sprites || {}) },
     widgets,

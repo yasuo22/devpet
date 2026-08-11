@@ -53,8 +53,10 @@ export const CONFIG = {
     cyclesBeforeLong: 4,
   },
 
-  // 闲置进入睡眠的毫秒数
+  // 闲置进入睡眠的毫秒数（默认 30s，狸花猫模式下为 15 分钟）
   SLEEP_AFTER_MS: 30 * 1000,
+  // 彩色狸花猫模式的闲置睡眠超时：15 分钟无输入 → 睡觉
+  CAT_SLEEP_AFTER_MS: 15 * 60 * 1000,
 
   // Widget 元信息（标题 / 图标 / 说明，供渲染与排序使用）
   WIDGET_META: {
@@ -63,6 +65,7 @@ export const CONFIG = {
     crypto: { title: '加密货币', icon: '₿' },
     github: { title: 'GitHub 作品', icon: '🐙' },
     pomodoro: { title: '番茄钟', icon: '🍅' },
+    catfood: { title: '猫粮', icon: '🐟' },
   },
 
   // Widget 开关（默认全开）
@@ -72,10 +75,11 @@ export const CONFIG = {
     crypto: true,
     github: true,
     pomodoro: true,
+    catfood: true,
   },
 
   // Widget 默认顺序（用于拖拽排序的初始值）
-  DEFAULT_WIDGET_LIST: ['weather', 'stock', 'crypto', 'github', 'pomodoro'],
+  DEFAULT_WIDGET_LIST: ['weather', 'stock', 'crypto', 'github', 'pomodoro', 'catfood'],
 
   // 贡献热图配置
   CONTRIBUTIONS: {
@@ -162,6 +166,16 @@ export const CONFIG = {
       color: { body: '#c9b8ff', dark: '#7a5fd0' },
       sprites: { idle: '', sleep: '💤', happy: '✨', sad: '🌧️', working: '🌙' },
     },
+    {
+      name: '花狸',
+      preset: 'tabby',
+      gender: 'other',
+      occupation: '代码守护猫',
+      personality: '活泼',
+      color: { body: '#d9a066', dark: '#8b5e34', stripe: '#6b4423', belly: '#f5e6d0' },
+      colorExt: { stripe: '#6b4423', belly: '#f5e6d0' },
+      sprites: { idle: '', sleep: '💤', happy: '🦋', sad: '🌧️', working: '💻' },
+    },
   ],
 
   // 通知服务（Webhook 集成，用户自管 URL）
@@ -182,6 +196,41 @@ export const CONFIG = {
     statuses: ['online', 'busy', 'away'],
     // 默认项目信息
     defaultProject: 'DevPet',
+  },
+
+  // ============================================================
+  // 猫粮系统（Codex token 消耗 → 猫粮积累 → 定时喂食）
+  // ============================================================
+  CATFOOD: {
+    // 每消耗多少 token 积累 1 克猫粮
+    TOKENS_PER_GRAM: 1000,
+    // 猫粮饥饿度上限（克），满格表示吃饱
+    MAX_FOOD: 100,
+    // 每隔多少毫秒需要喂食（默认 4 小时）
+    FEED_INTERVAL_MS: 4 * 60 * 60 * 1000,
+    // 饥饿警告阈值（低于此值提醒投喂）
+    HUNGRY_THRESHOLD: 30,
+    // 存储 key
+    STORE_KEY: 'catfood',
+    // 不同猫粮档次（按 token 消耗定价）
+    TIERS: [
+      { id: 'kibble', name: '基础猫粮', pricePerGram: 1, minTokens: 0, desc: '普通干粮，token 消耗 0~10k' },
+      { id: 'salmon', name: '三文鱼猫粮', pricePerGram: 2, minTokens: 10000, desc: '优质猫粮，token 消耗 10k~50k' },
+      { id: 'tuna', name: '金枪鱼猫粮', pricePerGram: 5, minTokens: 50000, desc: '豪华猫粮，token 消耗 50k~100k' },
+      { id: 'wagyu', name: '和牛猫粮', pricePerGram: 10, minTokens: 100000, desc: '顶级猫粮，token 消耗 100k+' },
+    ],
+  },
+
+  // 彩色狸花猫活动追踪
+  CAT_ACTIVITY: {
+    // 检测输入活动的元素选择器
+    ACTIVITY_EVENTS: ['keydown', 'mousedown', 'touchstart', 'scroll', 'input', 'click', 'pointermove'],
+    // 追蝴蝶动画时长（毫秒）
+    BUTTERFLY_DURATION_MS: 8000,
+    // 蝴蝶移动范围（相对于宠物）
+    BUTTERFLY_RADIUS: 120,
+    // 存储 key
+    STORE_KEY: 'catActivity',
   },
 };
 

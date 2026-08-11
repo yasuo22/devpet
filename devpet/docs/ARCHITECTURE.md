@@ -9,14 +9,16 @@ DevPet 是一个零依赖的纯静态单页应用。所有逻辑被拆分为 10 
 ```
 index.html ──► js/app.js ──► 初始化各模块
                     │
-                    ├──► mascot.js   （吉祥物核心）
+                    ├──► mascot.js   （吉祥物核心 + 追蝴蝶/猫窝）
                     ├──► pet.js      （宠物元数据 Schema）
                     ├──► weather.js  （天气数据）
                     ├──► market.js   （股票/加密数据）
                     ├──► github.js   （GitHub 作品/热图/账号关联）
-                    ├──► widgets.js  （Widget 渲染 + 拖拽/开关）
+                    ├──► widgets.js  （Widget 渲染 + 拖拽/开关 + 猫粮状态）
                     ├──► social.js   （社交层 + 泡泡优先级队列）
                     ├──► hub.js      （控制中心：主题市场/通知服务/协作模式）
+                    ├──► activity.js （用户活动检测 → 追蝴蝶/睡眠）
+                    ├──► catfood.js  （猫粮系统：token→猫粮→投喂）
                     └──► store.js    （状态持久化，被各模块复用）
 ```
 
@@ -26,12 +28,14 @@ index.html ──► js/app.js ──► 初始化各模块
 | --- | --- | --- |
 | `config.js` | 常量、API 端点、默认配置、离线数据 | 无 |
 | `store.js` | localStorage 封装（get/set/默认值） | config |
-| `mascot.js` | 宠物状态机、天气反应、拖拽、锁定、应用 pet 配色 | config, store, pet |
+| `mascot.js` | 宠物状态机、天气反应、拖拽、锁定、追蝴蝶、猫窝睡眠 | config, store, pet |
+| `activity.js` | 用户输入活动检测（键盘/鼠标/触摸/滚动） | config, store |
+| `catfood.js` | 猫粮系统（token→猫粮换算、投喂提醒） | config, store |
 | `pet.js` | 宠物元数据 Schema（get/save + 校验） | config, store |
 | `weather.js` | 天气获取，API 失败时用离线数据 | config |
 | `market.js` | 股票 / 加密货币行情 | config |
 | `github.js` | GitHub 作品 / 贡献热图 / 最近提交PR / 账号关联 | config, store |
-| `widgets.js` | Widget 渲染 + 拖拽排序 + 开关 | config, pet, weather, market, github, store |
+| `widgets.js` | Widget 渲染 + 拖拽排序 + 开关 + 猫粮状态 | config, pet, weather, market, github, catfood, store |
 | `social.js` | 泡泡（优先级队列）、名片、协作状态渲染 | config, store |
 | `hub.js` | 控制中心：主题市场（预设/导出/导入）、通知服务（Webhook）、协作模式（状态/邀请链接） | config, store, pet, social |
 | `app.js` | 入口，创建 DOM、绑定事件、设置面板、启动循环、hub 初始化 | 全部 |
@@ -67,13 +71,33 @@ index.html ──► js/app.js ──► 初始化各模块
 ## 状态机（吉祥物）
 
 ```
-idle ──► sleep（闲置超时）
+idle ──► sleep（闲置超时；狸花猫 15 分钟）
 idle ──► happy（天气好 / 用户点赞）
 idle ──► sad（天气差 / 数据拉取失败）
 idle ──► working（番茄钟进行中）
+idle ──► chase（狸花猫检测到输入 → 追蝴蝶）
+chase ─► idle（蝴蝶动画结束 / 停止输入）
+sleep ─► chase（狸花猫：检测到输入 → 唤醒追蝴蝶）
 sleep ─► idle（被点击唤醒）
 locked ─► 所有状态中拖拽被禁用
 ```
+
+## 彩色狸花猫（花狸）
+
+`config.js` 新增 `tabby` 预设，实现以下专属功能：
+
+### 活动检测
+`activity.js` 监听键盘、鼠标、触摸、滚动等输入事件，通过 `ActivityTracker` 类跟踪用户活跃状态。
+- **活跃**：用户正在输入 → `mascot.onUserActive()` → 进入 `chase` 状态追蝴蝶
+- **闲置**：停止输入超过 15 分钟 → `mascot.onUserIdle()` → 进入 `sleep` 状态睡猫窝
+
+### 猫粮系统
+`catfood.js` 管理 token 消耗到猫粮的换算：
+- `addTokens(tokens)`：记录 token 消耗，按 `1000 token = 1g` 积累猫粮
+- `feed()`：手动投喂，补满猫粮
+- `checkFeedStatus()`：每 60 秒检查是否需要提醒投喂（每 4 小时）
+- 猫粮档次按累计 token 消耗自动升级（基础/三文鱼/金枪鱼/和牛）
+- `widgets.js` 的 `renderCatFood()` 渲染猫粮状态面板
 
 ## 主题
 

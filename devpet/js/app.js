@@ -9,6 +9,8 @@ import { renderAllWidgets } from './widgets.js';
 import { getPet, savePet, defaultPet } from './pet.js';
 import { renderProfileCard, like, showBubble, enqueueBubble } from './social.js';
 import { getGitHubUser, setGitHubUser } from './github.js';
+import { ActivityTracker } from './activity.js';
+import { initCatFoodSystem, addTokens, getFoodLevelPercent, formatFoodStatus, feed } from './catfood.js';
 import * as store from './store.js';
 
 // hub（主题市场 / 通知 / 协作）按需加载
@@ -19,6 +21,8 @@ const app = {
   mascot: null,
   pomodoro: null,
   bootedAt: Date.now(),
+  activityTracker: null,
+  catFoodCleanup: null,
 };
 
 /**
@@ -44,6 +48,12 @@ async function init() {
   const pet = getPet();
   showBubble(`👋 ${pet.name} v${CONFIG.VERSION} 启动完成！`);
 
+  // 5.1 初始化活动检测（狸花猫模式启用）
+  initActivityTracking();
+
+  // 5.2 初始化猫粮系统（狸花猫模式启用）
+  initFoodSystem();
+
   // 5.5 hub：渲染预设宠物网格 + 检查协作邀请链接
   initHub();
 
@@ -55,6 +65,78 @@ async function init() {
     if (order.includes('weather')) import('./widgets.js').then((m) => m.renderWeather(app.mascot));
     if (order.includes('github')) import('./widgets.js').then((m) => m.renderGitHub());
   }, 60 * 1000);
+}
+
+/**
+ * 初始化活动检测（狸花猫模式启用）
+ * 检测用户输入活动 → 宠物活跃/追蝴蝶 → 闲置超时 → 睡猫窝
+ */
+function initActivityTracking() {
+  const pet = getPet();
+  const isTabbyCat = pet.preset === 'tabby' || pet.name === '花狸';
+  
+  // 仅狸花猫模式启用活动检测
+  if (!isTabbyCat) return;
+  
+  app.activityTracker = new ActivityTracker({
+    onActive: () => {
+      app.mascot.onUserActive();
+    },
+    onIdle: () => {
+      app.mascot.onUserIdle();
+    },
+  });
+  
+  // 设置闲置超时为 15 分钟
+  app.activityTracker.setIdleTimeout(CONFIG.CAT_SLEEP_AFTER_MS);
+  app.activityTracker.start();
+  
+  // 如果页面加载时用户已停止输入很久，则直接进入睡眠
+  const lastActivity = store.get('catActivity', {});
+  if (lastActivity.lastActiveAt) {
+    const inactiveMs = Date.now() - lastActivity.lastActiveAt;
+    if (inactiveMs >= CONFIG.CAT_SLEEP_AFTER_MS) {
+      app.mascot.onUserIdle();
+    }
+  }
+}
+
+/**
+ * 初始化猫粮系统
+ * 每 4 小时提醒投喂，猫粮存量低于阈值提醒
+ */
+function initFoodSystem() {
+  const pet = getPet();
+  const isTabbyCat = pet.preset === 'tabby' || pet.name === '花狸';
+  
+  // 仅狸花猫模式启用猫粮系统
+  if (!isTabbyCat) return;
+  
+  app.catFoodCleanup = initCatFoodSystem({
+    onHungry: (state) => {
+      enqueueBubble({ 
+        text: `😿 ${pet.name}饿了！猫粮只剩 ${Math.round(state.currentFood)}g，请投喂～`, 
+        type: 'critical', 
+        priority: 10 
+      });
+    },
+    onFeedDue: (state) => {
+      enqueueBubble({ 
+        text: `⏰ 距上次喂食已 4 小时，该给 ${pet.name} 投喂猫粮啦！`, 
+        type: 'critical', 
+        priority: 10 
+      });
+    },
+    onTick: (state) => {
+      // 定时刷新猫粮状态显示（不需要额外操作，状态在泡泡中已展示）
+    },
+  });
+  
+  // 暴露猫粮操作到全局
+  window.DevPet = window.DevPet || {};
+  window.DevPet.addTokens = addTokens;
+  window.DevPet.feed = feed;
+  window.DevPet.foodStatus = formatFoodStatus;
 }
 
 /**
@@ -88,6 +170,12 @@ function updatePetPreview() {
     el.style.fill = body;
     el.style.stroke = dark;
   });
+  // 狸花猫标记预览
+  const markings = svg.querySelector('.tabby-markings');
+  if (markings) {
+    const isTabby = getPet().preset === 'tabby' || document.getElementById('input-pet-name').value === '花狸';
+    markings.style.display = isTabby ? '' : 'none';
+  }
 }
 
 /** 绑定控制栏按钮 */
@@ -178,6 +266,8 @@ function bindControls() {
     // 立即把新配色应用到吉祥物本体
     app.mascot.pet = getPet();
     app.mascot.applyPetColor();
+    app.mascot.isTabbyCat = getPet().preset === 'tabby' || name === '花狸';
+    app.mascot.applyTabbyExtras();
 
     let msg = '✅ 已保存宠物设置';
     if (gh) {
@@ -195,7 +285,35 @@ function bindControls() {
 /** 把宠物应用到吉祥物本体（hub 预设/导入共用） */
 function applyPetToMascot(pet) {
   app.mascot.pet = pet;
+  app.mascot.isTabbyCat = pet.preset === 'tabby' || pet.name === '花狸';
   app.mascot.applyPetColor();
+  app.mascot.applyTabbyExtras();
+  // 同步设置面板预览
+  updatePetPreview();
+  
+  // 切换到狸花猫时启用活动检测和猫粮系统
+  const isTabby = pet.preset === 'tabby' || pet.name === '花狸';
+  
+  // 重新初始化活动检测
+  if (app.activityTracker) {
+    app.activityTracker.stop();
+    app.activityTracker = null;
+  }
+  if (isTabby) {
+    initActivityTracking();
+  }
+  
+  // 重新初始化猫粮系统
+  if (app.catFoodCleanup) {
+    app.catFoodCleanup();
+    app.catFoodCleanup = null;
+  }
+  if (isTabby) {
+    initFoodSystem();
+  }
+  
+  // 重新渲染 Widget（切换宠物后更新 catfood widget 等）
+  renderAllWidgets(app.mascot).catch(() => {});
 }
 
 /**

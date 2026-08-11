@@ -124,6 +124,115 @@ button { font-family: inherit; cursor: pointer; }
 .mascot.mood-sad .eye { rx: 3; ry: 5; }
 .mascot.mood-sad .mouth { transform: translateY(4px) scaleY(-0.4); }
 
+/* ---------- 狸花猫条纹 ---------- */
+.mascot .tabby-stripes {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.mascot .tabby-stripes .stripe {
+  position: absolute;
+  background: var(--pet-stripe, #6b4423);
+  border-radius: 2px;
+  opacity: 0.45;
+}
+
+/* 狸花猫头纹 */
+.mascot .tabby-stripes .stripe.head-1 { top: 22px; left: 38px; width: 4px; height: 12px; transform: rotate(12deg); }
+.mascot .tabby-stripes .stripe.head-2 { top: 22px; left: 54px; width: 4px; height: 12px; transform: rotate(-12deg); }
+.mascot .tabby-stripes .stripe.head-3 { top: 26px; left: 46px; width: 4px; height: 10px; }
+
+/* 狸花猫背纹 */
+.mascot .tabby-stripes .stripe.back-1 { top: 44px; left: 18px; width: 4px; height: 22px; transform: rotate(8deg); }
+.mascot .tabby-stripes .stripe.back-2 { top: 46px; left: 34px; width: 3px; height: 18px; }
+.mascot .tabby-stripes .stripe.back-3 { top: 44px; left: 62px; width: 4px; height: 22px; transform: rotate(-8deg); }
+.mascot .tabby-stripes .stripe.back-4 { top: 46px; left: 77px; width: 3px; height: 18px; }
+
+/* 狸花猫肚皮 */
+.mascot .tabby-belly {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 38px;
+  height: 22px;
+  background: var(--pet-belly, #f5e6d0);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  z-index: 1;
+  opacity: 0.8;
+}
+
+/* ---------- 蝴蝶动画 ---------- */
+.butterfly {
+  position: fixed;
+  z-index: 999;
+  width: 28px;
+  height: 28px;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
+  animation: butterfly-float 1.2s ease-in-out infinite;
+  transition: left 0.4s ease, top 0.4s ease;
+}
+.butterfly .butterfly-wing {
+  position: absolute;
+  font-size: 16px;
+}
+.butterfly .butterfly-wing.left {
+  left: 0;
+  top: 4px;
+  animation: wing-flap 0.3s ease-in-out infinite alternate;
+}
+.butterfly .butterfly-wing.right {
+  right: 0;
+  top: 4px;
+  transform: scaleX(-1);
+  animation: wing-flap 0.3s ease-in-out infinite alternate;
+}
+@keyframes butterfly-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes wing-flap {
+  from { transform: rotate(-10deg) scaleX(1); }
+  to { transform: rotate(10deg) scaleX(1); }
+}
+
+/* ---------- 猫窝 ---------- */
+.cat-nest {
+  position: fixed;
+  z-index: 998;
+  width: 80px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  pointer-events: none;
+  animation: nest-bob 2s ease-in-out infinite;
+}
+@keyframes nest-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+
+/* 追蝴蝶时宠物跳动 */
+.mascot.mood-chase .mascot-face {
+  animation: chase-bounce 0.35s ease-in-out infinite alternate;
+}
+@keyframes chase-bounce {
+  from { transform: translateY(0) rotate(-3deg); }
+  to { transform: translateY(-4px) rotate(3deg); }
+}
+.mascot.mood-chase .eye {
+  animation: chase-eyes 0.5s ease-in-out infinite alternate;
+}
+@keyframes chase-eyes {
+  from { transform: scaleY(1); }
+  to { transform: scaleY(0.6); }
+}
+
 /* ---------- 吉祥物动画 ---------- */
 @keyframes floaty {
   0%, 100% { transform: translateY(0); }
@@ -491,6 +600,32 @@ button { font-family: inherit; cursor: pointer; }
 .row .val.bad { color: var(--bad); }
 .up { color: var(--ok); }
 .down { color: var(--bad); }
+
+/* 猫粮状态 */
+.catfood-status { font-size: 13px; }
+.catfood-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.catfood-tier { font-weight: 600; }
+.catfood-percent { color: var(--text-dim); }
+.catfood-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.catfood-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+.catfood-detail .sub { margin: 2px 0; }
+.catfood-tip { font-size: 11px; }
 
 /* 番茄钟 */
 .pomodoro { text-align: center; }

@@ -56,6 +56,7 @@ export function importPet(raw) {
   const merged = {
     ...pet,
     color: { body: pet.color.body, dark: pet.color.dark },
+    colorExt: pet.colorExt || {},
     sprites: { ...(getPet().sprites || {}), ...(pet.sprites || {}) },
   };
   return { ok: true, pet: merged };
@@ -92,14 +93,19 @@ export function applyPresetPet(presetKey) {
   const preset = (CONFIG.PRESET_PETS || []).find((p) => p.preset === presetKey);
   if (!preset) return null;
   // savePet 内部基于 getPet() 合并，会自动保留现有 widgets 配置
-  return savePet({
+  const save = {
     name: preset.name,
     gender: preset.gender,
     occupation: preset.occupation,
     personality: preset.personality,
     color: preset.color,
     sprites: preset.sprites,
-  });
+  };
+  // 狸花猫预设带扩展配色
+  if (preset.preset === 'tabby' && preset.colorExt) {
+    save.colorExt = preset.colorExt;
+  }
+  return savePet(save);
 }
 
 /** 渲染内置预设宠物网格（主题市场） */
