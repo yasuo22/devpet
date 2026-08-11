@@ -16,6 +16,8 @@
 {
   "preset": "classic",             // 预设标识（classic / tabby 等）
   "name": "DevPet",                 // 昵称
+  "kind": "creature",               // 类型：creature | object | character（对齐 petdex）
+  "vibes": ["cozy", "wholesome"],  // 气质标签（cozy / playful / focused / ... 对齐 petdex）
   "gender": "other",                // male | female | other
   "occupation": "开发者伙伴",         // 职业
   "personality": "开朗",            // 性格
@@ -34,6 +36,8 @@
 }
 ```
 
+`kind` 与 `vibes` 字段对齐 [petdex](https://github.com/crafter-station/petdex) 宠物包格式，合法值见 `config.js` 的 `PET_KINDS` / `PET_VIBES`。
+
 - 通过 `js/pet.js` 的 `getPet() / savePet()` 读写，含默认值合并与字段校验。
 - 吉祥物配色由 `mascot.js` 读取并覆盖 CSS 变量（`--pet-body` / `--pet-body-dark`）。
 
@@ -45,7 +49,7 @@
 | `sleep` | 闲置超过 30s（狸花猫：15 分钟） | 闭眼、Zzz 冒出、狸花猫显示猫窝 |
 | `happy` | 天气晴好 / 点赞 / 数据刷新成功 | 眼睛变弯、出现爱心 |
 | `sad` | 天气恶劣 / 数据拉取失败 | 眉毛下垂、出现雨滴/阴云 |
-| `working` | 番茄钟运行中 | 戴帽子/专注眼神、冒汗或计时 |
+| `working` | 番茄钟运行中 / 检测到编码活动（Codex token 增量） | 戴帽子/专注眼神、冒汗或计时 |
 | `chase` | 狸花猫检测到用户输入活动 | 追蝴蝶、跳跳蹦蹦 |
 
 ## 天气反应

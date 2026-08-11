@@ -428,10 +428,11 @@ button { font-family: inherit; cursor: pointer; }
 }
 .preset-item {
   display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border-radius: 20px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 6px 10px;
+  border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--bg-panel-2);
   color: var(--text);
@@ -449,8 +450,20 @@ button { font-family: inherit; cursor: pointer; }
   height: 12px;
   border-radius: 50%;
   display: inline-block;
+  margin-right: 6px;
+  vertical-align: middle;
 }
 .preset-name { font-weight: 600; }
+.preset-name-row { display: inline-flex; align-items: center; gap: 6px; }
+.preset-vibes {
+  display: block;
+  font-size: 10px;
+  color: var(--text-dim, #888);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .btn {
   padding: 6px 12px;

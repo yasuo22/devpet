@@ -21,6 +21,7 @@ index.html ──► js/app.js ──► 初始化各模块
                     ├──► catfood.js  （猫粮购买交易系统：token钱包→购买→投喂）
                     ├──► growth.js   （宠物成长系统：亲密度/经验/等级）
                     ├──► codex.js    （Codex token 真实数据接入）
+                    ├──► codingActivity.js （编码活动反应：petdex 式实时响应 coding agent）
                     └──► store.js    （状态持久化，被各模块复用）
 ```
 
@@ -35,6 +36,7 @@ index.html ──► js/app.js ──► 初始化各模块
 | `catfood.js` | 猫粮购买交易系统（token钱包→购买档次猫粮→投喂） | config, store, growth |
 | `growth.js` | 宠物成长系统（亲密度/经验/等级/解锁） | config, store |
 | `codex.js` | Codex token 真实数据接入（API/手动上报/持久化） | config, store |
+| `codingActivity.js` | 编码活动反应：监听 Codex token 增量 → 宠物进入 working + 泡泡 + 亲密度 | config, codex |
 | `pet.js` | 宠物元数据 Schema（get/save + 校验） | config, store |
 | `weather.js` | 天气获取，API 失败时用离线数据 | config |
 | `market.js` | 股票 / 加密货币行情 | config |
@@ -71,6 +73,8 @@ index.html ──► js/app.js ──► 初始化各模块
 ## 宠物元数据流
 
 `pet.js` 提供默认 Schema，`app.js` 启动时读取；`mascot.js` 应用配色；`widgets.js` 依据 `widgets` 字段决定渲染哪些面板；设置面板通过 `savePet()` 更新元数据并持久化。
+
+元数据包含 `kind`（creature/object/character）与 `vibes`（气质标签）字段，对齐 [petdex](https://github.com/crafter-station/petdex) 宠物包格式，便于未来接入社区生态。
 
 ## 状态机（吉祥物）
 
@@ -117,6 +121,13 @@ locked ─► 所有状态中拖拽被禁用
 - `configureCodexApi(endpoint, key)`：保存 API 配置
 - `initCodexMonitor()`：若已配置 API，每 10 分钟自动拉取
 - 猫粮钱包通过 `addTokens()` 自动同步
+
+### 编码活动反应（codingActivity.js）
+参考 petdex 桌面宠物「实时响应 coding agent 活动」的核心特性：
+- `CodingActivityMonitor` 轮询 Codex token 状态，计算增量
+- 增量超过阈值（`TOKEN_DELTA_THRESHOLD`）→ 触发 `onCodingActive`：宠物进入 `working` 状态 + 鼓励泡泡 + 亲密度奖励
+- 无新活动超过 `BACK_TO_IDLE_MS` → `onCodingIdle`：回到 `idle`
+- 泡泡触发带冷却（`BUBBLE_COOLDOWN_MS`），避免刷屏
 
 ## 主题
 

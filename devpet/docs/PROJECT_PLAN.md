@@ -88,6 +88,14 @@ DevPet 是一个**纯静态**的桌面宠物（吉祥物）网页应用。打开
 - **番茄钟联动**：专注会话获得 XP + 亲密度；专注中猫粮消耗变慢；休息时适合投喂
 - **设置面板新增 Codex 接入**：配置 API 端点 / Key，测试拉取
 
+### M12 - petdex 生态对齐 + 编码活动反应 + v1.0.0 发布（第七步 / Release 1.0）✅
+参考 [crafter-station/petdex](https://github.com/crafter-station/petdex) 优化：
+- **Pet 元数据扩展**：新增 `kind`（creature/object/character）与 `vibes`（cozy/calm/playful/...）字段，对齐 petdex 宠物包格式
+- **编码活动反应**：新增 `codingActivity.js`，监听 Codex token 消耗增量（真实编码活动信号）→ 宠物进入 working 状态 + 鼓励泡泡 + 亲密度奖励；无新活动回到 idle（petdex 桌面宠物核心特性）
+- **宠物编辑器 UI 扩展**：设置面板支持 kind / vibes 选择，导入导出携带新字段
+- **主题市场预设补全**：所有内置预设补充 kind / vibes 元数据，网格显示 vibe 标签
+- **版本收敛 v1.0.0**：纯静态核心 + Tauri 桌面壳版本统一为 1.0.0，整理 CHANGELOG 与发布说明
+
 ## 风险与对策
 
 | 风险 | 对策 |

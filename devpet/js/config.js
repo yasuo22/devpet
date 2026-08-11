@@ -5,7 +5,7 @@
 
 export const CONFIG = {
   APP_NAME: 'DevPet',
-  VERSION: '1.1.0',
+  VERSION: '1.0.0',
 
   // 宠物默认名称
   PET_NAME: 'DevPet',
@@ -119,11 +119,25 @@ export const CONFIG = {
     { name: 'react-starter', description: 'React 脚手架模板', language: 'TypeScript', stargazers_count: 45 },
   ],
 
+  // ============================================================
+  // 宠物类型与气质（对齐 petdex 生态：kind / vibes）
+  //   kind: 'creature' | 'object' | 'character'
+  //   vibes: ['cozy','calm','playful','cheerful','focused','mischievous',
+  //           'heroic','edgy','mystical','wholesome','chaotic','melancholic']
+  // ============================================================
+  PET_KINDS: ['creature', 'object', 'character'],
+  PET_VIBES: [
+    'cozy', 'calm', 'playful', 'cheerful', 'focused', 'mischievous',
+    'heroic', 'edgy', 'mystical', 'wholesome', 'chaotic', 'melancholic',
+  ],
+
   // 主题市场：内置预设宠物主题（社区可分享/导入更多）
   PRESET_PETS: [
     {
       name: 'DevPet',
       preset: 'classic',
+      kind: 'creature',
+      vibes: ['cozy', 'wholesome'],
       gender: 'other',
       occupation: '开发者伙伴',
       personality: '开朗',
@@ -133,6 +147,8 @@ export const CONFIG = {
     {
       name: '蓝莓',
       preset: 'tech',
+      kind: 'creature',
+      vibes: ['calm', 'focused'],
       gender: 'male',
       occupation: '系统工程师',
       personality: '沉稳',
@@ -142,6 +158,8 @@ export const CONFIG = {
     {
       name: '桃桃',
       preset: 'cute',
+      kind: 'creature',
+      vibes: ['cheerful', 'playful'],
       gender: 'female',
       occupation: '前端设计师',
       personality: '元气',
@@ -151,6 +169,8 @@ export const CONFIG = {
     {
       name: '芽芽',
       preset: 'nature',
+      kind: 'creature',
+      vibes: ['calm', 'wholesome'],
       gender: 'other',
       occupation: '开源贡献者',
       personality: '温和',
@@ -160,6 +180,8 @@ export const CONFIG = {
     {
       name: '小夜',
       preset: 'midnight',
+      kind: 'creature',
+      vibes: ['mystical', 'focused'],
       gender: 'other',
       occupation: '后端架构师',
       personality: '专注',
@@ -169,6 +191,8 @@ export const CONFIG = {
     {
       name: '花狸',
       preset: 'tabby',
+      kind: 'creature',
+      vibes: ['playful', 'mischievous'],
       gender: 'other',
       occupation: '代码守护猫',
       personality: '活泼',
@@ -206,6 +230,31 @@ export const CONFIG = {
     REFRESH_MS: 10 * 60 * 1000,
     // 存储 key
     STORE_KEY: 'codexUsage',
+  },
+
+  // ============================================================
+  // 编码活动反应（对齐 petdex 桌面宠物核心：实时响应编码活动）
+  //   检测到 coding agent（Codex）产生 token 消耗 → 宠物进入 working 状态
+  //   并弹出鼓励/同步泡泡；空闲 3 分钟无新活动回到 idle。
+  // ============================================================
+  CODING_ACTIVITY: {
+    ENABLED: true,
+    // 检测到新 token 后进入 working 状态的文案
+    MESSAGES: {
+      working: [
+        '💻 检测到编码活动，正在陪你一起工作…',
+        '⚡ 看到你在写代码，我也干劲十足！',
+        '🤖 coding agent 正在发力，加油！',
+        '📈 token 在燃烧，进度在前进～',
+      ],
+      idle: '✅ 编码活动告一段落，休息一下吧',
+    },
+    // 新 token 增量达到该阈值（>=）才触发 working 状态
+    TOKEN_DELTA_THRESHOLD: 100,
+    // working 状态保持后，无新活动 N 毫秒回到 idle
+    BACK_TO_IDLE_MS: 3 * 60 * 1000,
+    // 连续泡泡触发的最小间隔，避免刷屏
+    BUBBLE_COOLDOWN_MS: 60 * 1000,
   },
 
   // ============================================================

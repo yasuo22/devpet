@@ -13,6 +13,7 @@ import { ActivityTracker } from './activity.js';
 import { initCatFoodSystem, addTokens, getFoodLevelPercent, formatFoodStatus, feed } from './catfood.js';
 import { reportTokens, initCodexMonitor, configureCodexApi, getCodexState, formatCodexSummary, fetchTokensFromApi } from './codex.js';
 import { onInteract, onFeed, getGrowthState, formatGrowthSummary } from './growth.js';
+import { CodingActivityMonitor } from './codingActivity.js';
 import * as store from './store.js';
 
 // hub（主题市场 / 通知 / 协作）按需加载
@@ -26,6 +27,8 @@ const app = {
   activityTracker: null,
   catFoodCleanup: null,
   codexCleanup: null,
+  codingActivity: null,
+  codingActivityCleanup: null,
 };
 
 /**
@@ -62,6 +65,9 @@ async function init() {
 
   // 5.4 初始化成长系统（全模式启用）
   initGrowthSystem();
+
+  // 5.3.1 初始化编码活动反应（petdex 式：宠物实时响应 coding agent 活动）
+  initCodingActivity();
 
   // 5.5 hub：渲染预设宠物网格 + 检查协作邀请链接
   initHub();
@@ -187,6 +193,56 @@ function initCodexMonitoring() {
 }
 
 /**
+ * 初始化编码活动反应（petdex 式桌面宠物核心）
+ * 全模式启用：监听 Codex token 消耗增量，检测到编码活动时宠物进入 working 状态。
+ */
+function initCodingActivity() {
+  if (!CONFIG.CODING_ACTIVITY || CONFIG.CODING_ACTIVITY.ENABLED === false) return;
+
+  // 清理旧实例（配置变更时重新初始化用）
+  if (app.codingActivityCleanup) {
+    app.codingActivityCleanup();
+    app.codingActivityCleanup = null;
+  }
+
+  const monitor = new CodingActivityMonitor({
+    onCodingActive: ({ delta, shouldBubble }) => {
+      const pet = getPet();
+      // 宠物进入 working 状态（若当前是 idle/sleep）
+      if (app.mascot && ['idle', 'sleep', 'happy', 'sad'].includes(app.mascot.mood)) {
+        app.mascot.setMood('working', { silent: true });
+      }
+      // 泡泡节流：避免刷屏
+      if (shouldBubble) {
+        const msgs = CONFIG.CODING_ACTIVITY.MESSAGES.working || [];
+        const msg = msgs[Math.floor(Math.random() * msgs.length)] || '💻 正在陪你一起工作…';
+        enqueueBubble({ text: msg, type: 'normal', priority: 3 });
+        // 同步奖励少量亲密度
+        if (window.DevPet && window.DevPet.growthOnInteract) {
+          window.DevPet.growthOnInteract();
+        }
+      }
+    },
+    onCodingIdle: () => {
+      // 编码活动结束 → 回到 idle（若当前是 working 且非专注中）
+      if (app.mascot && app.mascot.mood === 'working') {
+        app.mascot.setMood('idle', { silent: true });
+        const idleMsg = CONFIG.CODING_ACTIVITY.MESSAGES.idle;
+        if (idleMsg) enqueueBubble({ text: idleMsg, type: 'normal', priority: 1 });
+      }
+    },
+  });
+
+  monitor.start();
+  app.codingActivity = monitor;
+  app.codingActivityCleanup = () => monitor.stop();
+
+  // 暴露到全局，便于手动上报后立即触发
+  window.DevPet = window.DevPet || {};
+  window.DevPet.notifyCodingActivity = () => monitor._tick();
+}
+
+/**
  * 初始化成长系统（全模式启用）
  * 仅初始化显示所需的数据，实际交互通过猫粮/互动触发。
  */
@@ -259,6 +315,8 @@ function bindControls() {
     document.getElementById('input-pet-gender').value = pet.gender;
     document.getElementById('input-pet-occupation').value = pet.occupation;
     document.getElementById('input-pet-personality').value = pet.personality;
+    document.getElementById('input-pet-kind').value = pet.kind;
+    document.getElementById('input-pet-vibes').value = (pet.vibes || []).join(', ');
     document.getElementById('input-pet-color-body').value = pet.color.body;
     document.getElementById('input-pet-color-dark').value = pet.color.dark;
     document.getElementById('input-github-user').value = getGitHubUser();
@@ -357,6 +415,8 @@ function bindControls() {
     document.getElementById('input-pet-gender').value = dft.gender;
     document.getElementById('input-pet-occupation').value = dft.occupation;
     document.getElementById('input-pet-personality').value = dft.personality;
+    document.getElementById('input-pet-kind').value = dft.kind;
+    document.getElementById('input-pet-vibes').value = (dft.vibes || []).join(', ');
     document.getElementById('input-pet-color-body').value = dft.color.body;
     document.getElementById('input-pet-color-dark').value = dft.color.dark;
     updatePetPreview();
@@ -371,6 +431,9 @@ function bindControls() {
     const gender = document.getElementById('input-pet-gender').value;
     const occ = document.getElementById('input-pet-occupation').value.trim();
     const personality = document.getElementById('input-pet-personality').value.trim();
+    const kind = document.getElementById('input-pet-kind').value;
+    const vibesRaw = document.getElementById('input-pet-vibes').value.trim();
+    const vibes = vibesRaw.split(/[,，\s]+/).map((v) => v.trim()).filter(Boolean);
     const colorBody = document.getElementById('input-pet-color-body').value;
     const colorDark = document.getElementById('input-pet-color-dark').value;
     const gh = document.getElementById('input-github-user').value.trim();
@@ -378,6 +441,8 @@ function bindControls() {
     savePet({
       name: name || undefined,
       gender,
+      kind,
+      vibes,
       occupation: occ || undefined,
       personality: personality || undefined,
       color: { body: colorBody, dark: colorDark },
@@ -473,6 +538,8 @@ function initHub() {
         document.getElementById('input-pet-gender').value = pet.gender;
         document.getElementById('input-pet-occupation').value = pet.occupation;
         document.getElementById('input-pet-personality').value = pet.personality;
+        document.getElementById('input-pet-kind').value = pet.kind;
+        document.getElementById('input-pet-vibes').value = (pet.vibes || []).join(', ');
         document.getElementById('input-pet-color-body').value = pet.color.body;
         document.getElementById('input-pet-color-dark').value = pet.color.dark;
         updatePetPreview();

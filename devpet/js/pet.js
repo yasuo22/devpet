@@ -6,6 +6,8 @@
  *
  * {
  *   name: string,            // 宠物昵称
+ *   kind: 'creature'|'object'|'character', // 类型（对齐 petdex 生态）
+ *   vibes: string[],         // 气质标签（cozy/calm/playful/... 对齐 petdex）
  *   gender: 'male'|'female'|'other',   // 性别
  *   occupation: string,      // 职业（如 '全栈开发者'）
  *   personality: string,     // 性格（影响文案，如 '开朗'）
@@ -25,6 +27,8 @@ export function defaultPet() {
   return {
     preset: 'classic',
     name: CONFIG.PET_NAME || 'DevPet',
+    kind: 'creature',
+    vibes: ['cozy', 'wholesome'],
     gender: 'other',
     occupation: '开发者伙伴',
     personality: '开朗',
@@ -72,6 +76,10 @@ function normalizePet(p) {
   return {
     preset: p.preset || '',
     name: p.name || dft.name,
+    kind: CONFIG.PET_KINDS.includes(p.kind) ? p.kind : dft.kind,
+    vibes: Array.isArray(p.vibes) && p.vibes.length
+      ? p.vibes.filter((v) => CONFIG.PET_VIBES.includes(v))
+      : dft.vibes,
     gender: ['male', 'female', 'other'].includes(p.gender) ? p.gender : dft.gender,
     occupation: p.occupation || dft.occupation,
     personality: p.personality || dft.personality,

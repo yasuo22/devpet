@@ -55,6 +55,10 @@ export function importPet(raw) {
 
   const merged = {
     ...pet,
+    kind: CONFIG.PET_KINDS.includes(pet.kind) ? pet.kind : 'creature',
+    vibes: Array.isArray(pet.vibes)
+      ? pet.vibes.filter((v) => CONFIG.PET_VIBES.includes(v))
+      : [],
     color: { body: pet.color.body, dark: pet.color.dark },
     colorExt: pet.colorExt || {},
     sprites: { ...(getPet().sprites || {}), ...(pet.sprites || {}) },
@@ -95,6 +99,8 @@ export function applyPresetPet(presetKey) {
   // savePet 内部基于 getPet() 合并，会自动保留现有 widgets 配置
   const save = {
     name: preset.name,
+    kind: preset.kind || 'creature',
+    vibes: preset.vibes || [],
     gender: preset.gender,
     occupation: preset.occupation,
     personality: preset.personality,
@@ -115,10 +121,14 @@ export function renderPresetGrid(containerId = 'preset-grid') {
   const cur = getPet();
   container.innerHTML = (CONFIG.PRESET_PETS || []).map((p) => {
     const active = p.name === cur.name && p.color.body === cur.color.body ? ' active' : '';
+    const vibesStr = (p.vibes || []).map((v) => '#' + v).join(' ');
     return `
-      <button class="preset-item${active}" data-preset="${p.preset}" title="${p.personality} · ${p.occupation}">
-        <span class="preset-dot" style="background:${p.color.body}"></span>
-        <span class="preset-name">${p.name}</span>
+      <button class="preset-item${active}" data-preset="${p.preset}" title="${p.personality} · ${p.occupation}｜${(p.vibes || []).join(', ')}">
+        <span class="preset-name-row">
+          <span class="preset-dot" style="background:${p.color.body}"></span>
+          <span class="preset-name">${p.name}</span>
+        </span>
+        <span class="preset-vibes">${vibesStr}</span>
       </button>`;
   }).join('');
   container.querySelectorAll('.preset-item').forEach((btn) => {
@@ -130,6 +140,8 @@ export function renderPresetGrid(containerId = 'preset-grid') {
         document.getElementById('input-pet-gender').value = next.gender;
         document.getElementById('input-pet-occupation').value = next.occupation;
         document.getElementById('input-pet-personality').value = next.personality;
+        document.getElementById('input-pet-kind').value = next.kind;
+        document.getElementById('input-pet-vibes').value = (next.vibes || []).join(', ');
         document.getElementById('input-pet-color-body').value = next.color.body;
         document.getElementById('input-pet-color-dark').value = next.color.dark;
         updatePetControls(next);
