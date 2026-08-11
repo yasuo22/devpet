@@ -1,7 +1,7 @@
 {
   "name": "devpet-tauri",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "DevPet · Tauri 2 桌面壳（Rust + Web 前端）",
   "scripts": {

@@ -1,6 +1,6 @@
 [package]
 name = "devpet"
-version = "1.0.0"
+version = "1.1.0"
 description = "DevPet · 开发者桌面宠物（Tauri 2 桌面壳）"
 authors = ["uzi999"]
 edition = "2021"

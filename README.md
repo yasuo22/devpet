@@ -1,6 +1,6 @@
 # 🐾 DevPet · 开发者桌面宠物
 
-![Version](https://img.shields.io/badge/version-v1.0.0-blue) ![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-v1.1.0-blue) ![License](https://img.shields.io/badge/license-MIT-green)
 
 > **陪伴开发者工作/生活的桌面小宠物** —— 集成天气、行情、GitHub 作品展示与番茄钟，让工作桌面不再枯燥。
 

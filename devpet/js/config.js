@@ -5,7 +5,7 @@
 
 export const CONFIG = {
   APP_NAME: 'DevPet',
-  VERSION: '1.0.0',
+  VERSION: '1.1.0',
 
   // 宠物默认名称
   PET_NAME: 'DevPet',
