@@ -4,6 +4,8 @@
 
 > **陪伴开发者工作/生活的桌面小宠物** —— 集成天气、行情、GitHub 作品展示与番茄钟，让工作桌面不再枯燥。
 
+🌐 **其他语言**：[English](README.en.md) · [Français](README.fr.md) · [한국어](README.ko.md) · [日本語](README.ja.md)
+
 ![DevPet](devpet/assets/favicon.svg)
 
 一个零依赖、纯静态、开箱即用的**开发者桌面吉祥物**应用。内置内联 SVG 绘制的可爱吉祥物，支持拖拽、锁定、心情/天气反应，并集成了开发者常用的信息面板（天气、股票、加密货币、GitHub 作品、番茄钟）。
