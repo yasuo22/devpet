@@ -260,7 +260,7 @@ export async function renderGitHub() {
 }
 
 /* ---------- 番茄钟 ---------- */
-export function renderPomodoro(onStateChange) {
+export function renderPomodoro(onStateChange, mascot) {
   const body = mount('widget-pomodoro', CONFIG.WIDGET_META.pomodoro.title, CONFIG.WIDGET_META.pomodoro.icon);
   body.classList.add('pomodoro');
 
@@ -310,7 +310,7 @@ export function renderPomodoro(onStateChange) {
         clearInterval(tick);
         tick = null;
         state.running = false;
-        advance();
+        advance(state.mode); // 传入刚结束的会话类型，用于发系统通知
         return;
       }
       render();
@@ -324,8 +324,12 @@ export function renderPomodoro(onStateChange) {
     render();
   };
 
-  const advance = () => {
-    if (state.mode === 'work') {
+  /**
+   * 会话结束时：切换到下一个会话并触发「桌面壳联动」系统通知。
+   * @param {string} finishedMode 刚结束的会话 work|shortBreak|longBreak
+   */
+  const advance = (finishedMode = state.mode) => {
+    if (finishedMode === 'work') {
       state.cycle++;
       state.mode = state.cycle % CONFIG.POMODORO.cyclesBeforeLong === 0 ? 'longBreak' : 'shortBreak';
     } else {
@@ -333,6 +337,7 @@ export function renderPomodoro(onStateChange) {
     }
     state.remaining = CONFIG.POMODORO[state.mode];
     render();
+    notifySessionEnd(finishedMode, state.mode);
   };
 
   const reset = () => {
@@ -342,12 +347,36 @@ export function renderPomodoro(onStateChange) {
     render();
   };
 
+  /**
+   * 番茄钟会话结束时的「桌面壳联动」逻辑：
+   *  - Tauri 桌面环境：通过 window.__DEVPET_NATIVE__.notify 发原生系统通知
+   *  - 浏览器环境：退化为吉祥物泡泡提示（保证 Web 版也能看到反馈）
+   * @param {string} finished 刚结束的会话
+   * @param {string} next 即将开始的会话
+   */
+  const notifySessionEnd = (finished, next) => {
+    const name = (p) => ({ work: '专注工作', shortBreak: '短休息', longBreak: '长休息' }[p] || p);
+    const body = `「${name(finished)}」已结束，开始「${name(next)}」`;
+
+    const native = window.__DEVPET_NATIVE__;
+    const say = () => { if (mascot && typeof mascot.say === 'function') mascot.say(body); };
+
+    if (native && typeof native.notify === 'function') {
+      // 桌面壳：发原生系统通知（并在宠物上同步提示）
+      native.notify('🍅 番茄钟提醒', body).catch(say);
+      say();
+    } else {
+      // 浏览器：仅用泡泡提示
+      say();
+    }
+  };
+
   body.addEventListener('click', (e) => {
     const action = e.target.dataset.action;
     if (!action) return;
     if (action === 'toggle') state.running ? pause() : start();
     else if (action === 'reset') reset();
-    else if (action === 'skip') { pause(); advance(); }
+    else if (action === 'skip') { pause(); advance(state.mode); }
   });
 
   render();
@@ -366,7 +395,7 @@ export async function renderAllWidgets(mascot) {
       case 'stock': jobs.push(renderStock()); break;
       case 'crypto': jobs.push(renderCrypto()); break;
       case 'github': jobs.push(renderGitHub()); break;
-      case 'pomodoro': jobs.push(Promise.resolve(renderPomodoro((m) => mascot.setMood(m, { silent: true })))); break;
+      case 'pomodoro': jobs.push(Promise.resolve(renderPomodoro((m) => mascot.setMood(m, { silent: true }), mascot))); break;
     }
   }
   await Promise.allSettled(jobs);

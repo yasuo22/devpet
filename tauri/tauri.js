@@ -105,6 +105,10 @@ function bindControls() {
 // ---------- 初始化 ----------
 
 async function init() {
+  // 同步暴露桥接层到全局，供 Web 版 app.js / widgets.js 可选调用
+  // （如番茄钟结束时发系统通知）。浏览器环境下 native 方法均为安全 no-op。
+  window.__DEVPET_NATIVE__ = native;
+
   if (!isTauri()) {
     // 浏览器环境：仅保留基础功能，不注入桌面 UI
     return;
@@ -125,9 +129,6 @@ async function init() {
 
   // 通知：应用启动后提示（演示原生通知能力）
   await native.notify("DevPet", "桌面宠物已启动 🎉");
-
-  // 暴露到全局，供 Web 版 app.js 可选调用（如番茄钟结束时发系统通知）
-  window.__DEVPET_NATIVE__ = native;
 }
 
 init();

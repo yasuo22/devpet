@@ -42,7 +42,7 @@ DevPet 采用 **双层结构**：
 | 🔒 锁定按钮 | `lock_window` | 锁定位置 + 置顶 |
 | ❤️ 点赞 | `notify` | 系统通知 |
 | 托盘菜单 | `show_window` / `quit_app` | 显示 / 退出 |
-| 番茄钟结束 | `notify`（预留） | 系统提醒 |
+| 番茄钟结束 | `notify`（已联动） | 系统提醒（widgets.js → __DEVPET_NATIVE__.notify） |
 
 ### 4. 窗口配置
 - `decorations: false` —— 无边框

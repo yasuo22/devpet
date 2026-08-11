@@ -25,6 +25,44 @@
   --pet-blush: #ff9eb0;
 }
 
+/* 浅色主题（通过 <html data-theme="light"> 启用） */
+:root[data-theme="light"] {
+  --bg: #f4f6fb;
+  --bg-panel: #ffffff;
+  --bg-panel-2: #eef1f8;
+  --border: #d8dce8;
+  --text: #23262f;
+  --text-dim: #6b7280;
+  --accent: #4f6ef7;
+  --accent-2: #e0498f;
+  --ok: #16a34a;
+  --warn: #d97706;
+  --bad: #dc2626;
+  --shadow: rgba(30, 40, 80, 0.16);
+  --pet-eye: #2b2b33;
+}
+
+/* 浅色主题下的背景渐变更柔和 */
+:root[data-theme="light"] body {
+  background: radial-gradient(1200px 800px at 20% 0%, #eef2fb 0%, var(--bg) 60%);
+}
+
+/* 浅色主题下热图、面板内嵌区域适配 */
+:root[data-theme="light"] .gh-heat {
+  background: rgba(0, 0, 0, 0.04);
+}
+:root[data-theme="light"] .heat-cell {
+  background: #e5e9f2;
+  border-color: rgba(0, 0, 0, 0.06);
+}
+:root[data-theme="light"] .btn {
+  border-color: #ccd3e2;
+  background: #f4f6fb;
+}
+:root[data-theme="light"] .mood-bubble::after {
+  border-top-color: var(--bg-panel-2);
+}
+
 /* ---------- 基础 ---------- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -198,6 +236,65 @@ button { font-family: inherit; cursor: pointer; }
   font-size: 13px;
 }
 .settings-card .field input:focus { outline: none; border-color: var(--accent); }
+
+/* 宠物编辑器：下拉框 / 颜色选择 / 预览 */
+.settings-card .field select {
+  width: 100%;
+  margin-top: 4px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel-2);
+  color: var(--text);
+  font-size: 13px;
+}
+.settings-card .field select:focus { outline: none; border-color: var(--accent); }
+.color-row {
+  display: flex;
+  gap: 16px;
+  margin-top: 6px;
+}
+.color-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.color-item input[type="color"] {
+  width: 40px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-panel-2);
+  cursor: pointer;
+}
+.pet-preview {
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 14px;
+  filter: drop-shadow(0 6px 10px var(--shadow));
+}
+.pet-preview svg { width: 100%; height: 100%; }
+.pet-preview .body {
+  fill: var(--pet-body);
+  stroke: var(--pet-body-dark);
+  stroke-width: 2;
+}
+.pet-preview .ear {
+  fill: var(--pet-body);
+  stroke: var(--pet-body-dark);
+  stroke-width: 2;
+}
+.pet-preview .eye { fill: var(--pet-eye); }
+.pet-preview .blush { fill: var(--pet-blush); opacity: 0.65; }
+.pet-preview .mouth {
+  fill: none;
+  stroke: var(--pet-eye);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
 
 /* ---------- Widget 面板 ---------- */
 .dashboard {

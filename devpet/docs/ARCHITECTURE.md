@@ -61,7 +61,15 @@ locked ─► 所有状态中拖拽被禁用
 
 ## 主题
 
-采用深色主题，所有颜色定义集中在 `css/style.css` 的 CSS 变量（`:root`）中，方便一键换肤。
+支持**深色 / 浅色**两种主题。所有颜色集中在 `css/style.css` 的 CSS 变量（`:root`）中，浅色主题通过 `<html data-theme="light">` 覆盖同一组变量，实现一键换肤。主题选择由 `app.js` 通过 `store.js` 持久化（`devpet.theme`）。
+
+## 宠物编辑器
+
+设置面板升级为「宠物编辑器」：可视化修改名称、性别、职业、性格与主体/描边配色，配色通过 `mascot.applyPetColor()` 实时应用到吉祥物本体，并持久化到 `pet.js` 的元数据（`devpet.pet`）。
+
+## 桌面壳联动
+
+`tauri.js` 暴露 `window.__DEVPET_NATIVE__` 桥接层。`widgets.js` 的番茄钟在会话结束时调用 `__DEVPET_NATIVE__.notify` 发原生系统通知；浏览器环境下降级为吉祥物泡泡提示。
 
 ## 离线降级
 

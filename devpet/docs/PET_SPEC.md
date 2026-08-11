@@ -57,7 +57,7 @@
 2. **锁定**：点击锁定按钮后固定位置，不可拖动（位置仍被记忆）。
 3. **点击**：点击唤醒睡着的宠物、随机触发小动作。
 4. **点赞**：按钮切换 `happy` 并弹出爱心泡泡。
-5. **设置面板**：⚙️ 按钮打开设置，可自定义宠物名称 / 职业 / 关联 GitHub 账号。
+5. **设置面板 / 宠物编辑器**：⚙️ 按钮打开编辑器，可自定义名称 / 性别 / 职业 / 性格 / 配色，并实时预览 + 恢复默认；同时可关联 GitHub 账号。
 
 ## Widget 系统
 
@@ -88,9 +88,18 @@ GitHub Widget 包含：
 | `devpet.mood` | string | 当前心情 |
 | `devpet.pomodoro` | object | 番茄钟设置与状态 |
 | `devpet.settings` | object | 主题、显示哪些 Widget 等 |
-| `devpet.pet` | object | 宠物元数据（名称/职业/配色/sprites/widgets） |
+| `devpet.pet` | object | 宠物元数据（名称/性别/职业/性格/配色/sprites/widgets） |
 | `devpet.widgetOrder` | array | Widget 拖拽排序后的顺序 |
 | `devpet.githubUser` | string | 关联的 GitHub 用户名 |
+| `devpet.theme` | string | 主题（`dark` / `light`） |
+
+## 主题
+
+支持**深色 / 浅色**两种主题。控制栏 🌓 按钮一键切换，通过 `<html data-theme>` 覆盖 `style.css` 的 CSS 变量，选择持久化到 `devpet.theme`。
+
+## 番茄钟与桌面壳联动
+
+番茄钟会话结束时（专注→休息 或 休息→专注），`widgets.js` 调用 `window.__DEVPET_NATIVE__.notify` 向桌面壳发送**原生系统通知**；浏览器环境下降级为吉祥物泡泡提示。
 
 ## 无障碍
 - 吉祥物有 `aria-label`。

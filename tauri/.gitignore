@@ -4,7 +4,7 @@ package-lock.json
 
 # Vite / 构建产物
 build/
-src/
+/src/
 
 # Rust / Tauri
 src-tauri/target/
