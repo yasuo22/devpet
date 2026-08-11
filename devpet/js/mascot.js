@@ -5,6 +5,7 @@
 
 import { CONFIG, WEATHER_MOOD } from './config.js';
 import * as store from './store.js';
+import { getPet } from './pet.js';
 
 /** 宠物状态集合 */
 export const MOODS = ['idle', 'sleep', 'happy', 'sad', 'working'];
@@ -17,6 +18,10 @@ export class Mascot {
     this.locked = store.get('locked', false);
     this.pos = store.get('pos', CONFIG.DEFAULT_POS);
     this.idleTimer = null;
+    this.pet = getPet();
+
+    // 应用 pet 元数据配色
+    this.applyPetColor();
 
     // 应用持久化状态
     this.setMood('idle', { silent: true });
@@ -26,6 +31,13 @@ export class Mascot {
     this.bindDrag();
     this.bindWake();
     this.startIdleTimer();
+  }
+
+  /** 根据 pet 元数据覆盖吉祥物配色 */
+  applyPetColor() {
+    const c = this.pet.color || {};
+    if (c.body) this.el.style.setProperty('--pet-body', c.body);
+    if (c.dark) this.el.style.setProperty('--pet-body-dark', c.dark);
   }
 
   /* ---------- 状态机 ---------- */

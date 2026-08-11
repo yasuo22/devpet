@@ -159,6 +159,46 @@ button { font-family: inherit; cursor: pointer; }
 .ctrl-btn:hover { background: var(--bg-panel-2); }
 .ctrl-btn.active { border-color: var(--accent); box-shadow: 0 0 8px rgba(108,140,255,0.4); }
 
+/* ---------- 设置面板 ---------- */
+.settings-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3000;
+  width: 320px;
+}
+.settings-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: 0 14px 40px var(--shadow);
+}
+.settings-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.settings-card .field {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.settings-card .field input {
+  width: 100%;
+  margin-top: 4px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel-2);
+  color: var(--text);
+  font-size: 13px;
+}
+.settings-card .field input:focus { outline: none; border-color: var(--accent); }
+
 /* ---------- Widget 面板 ---------- */
 .dashboard {
   display: grid;
@@ -174,16 +214,98 @@ button { font-family: inherit; cursor: pointer; }
   border-radius: var(--radius);
   padding: 16px;
   box-shadow: 0 6px 16px var(--shadow);
+  transition: opacity 0.2s, border-color 0.2s;
 }
+.widget.dragging-widget {
+  opacity: 0.6;
+  border-color: var(--accent);
+  box-shadow: 0 10px 24px var(--shadow);
+}
+.widget-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.widget-head .drag-handle {
+  cursor: grab;
+  color: var(--text-dim);
+  font-size: 14px;
+  user-select: none;
+  padding: 0 2px;
+}
+.widget-head .drag-handle:hover { color: var(--accent); }
+.widget-head .widget-close {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 13px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 4px;
+}
+.widget-head .widget-close:hover { color: var(--bad); }
 .widget h3 {
   font-size: 14px;
   letter-spacing: 0.5px;
   color: var(--text-dim);
-  margin-bottom: 10px;
   display: flex;
   align-items: center;
   gap: 6px;
 }
+
+/* ---------- GitHub 贡献热图 ---------- */
+.gh-head {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.gh-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+}
+.gh-user { font-weight: 700; font-size: 14px; }
+.gh-user a { color: var(--accent); text-decoration: none; }
+.gh-user a:hover { text-decoration: underline; }
+.gh-stats { font-size: 12px; }
+.gh-heat {
+  margin: 10px 0;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.2);
+}
+.gh-heat-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.gh-total { font-weight: 600; color: var(--text); }
+.heat-grid {
+  display: grid;
+  grid-template-columns: repeat(28, 1fr);
+  gap: 2px;
+}
+.heat-cell {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: var(--bg-panel-2);
+  border: 1px solid rgba(255,255,255,0.04);
+}
+.heat-cell.l1 { background: #1f6feb; opacity: 0.45; }
+.heat-cell.l2 { background: #1f6feb; opacity: 0.7; }
+.heat-cell.l3 { background: #388bfd; }
+.heat-cell.l4 { background: #58a6ff; }
+.gh-event .sub { display: flex; gap: 4px; }
+.gh-event a { color: var(--text); text-decoration: none; }
+.gh-event a:hover { color: var(--accent); text-decoration: underline; }
+.gh-event.is-pr a { color: var(--accent-2); }
 .widget .big {
   font-size: 30px;
   font-weight: 700;

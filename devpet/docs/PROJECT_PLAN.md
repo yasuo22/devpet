@@ -38,6 +38,20 @@ DevPet 是一个**纯静态**的桌面宠物（吉祥物）网页应用。打开
 - `js/social.js` 社交层（泡泡 / 名片 / 协作状态）
 - `js/app.js` 应用入口与事件绑定
 
+### M5 - 个性化与可配置（第一步：Pet 元数据 + Widget 拖拽 + 贡献热图）✅
+- `js/pet.js` 宠物元数据 Schema（name / gender / occupation / personality / color / sprites / widgets）
+- `js/widgets.js` Widget 拖拽排序 + 关闭开关（顺序持久化）
+- `js/github.js` 贡献热图 + 最近提交 / PR + 账号关联
+- `index.html` + `app.js` 设置面板（自定义宠物名称 / 职业 / 关联 GitHub）
+
+### M6 - 待规划
+- 宠物编辑器 UI（换配色 / 表情 / 性格）
+- 泡泡优先级队列
+- Tauri 2 桌面壳（全局 overlay / 透明点击穿透 / 托盘）
+- 通知服务（Discord / Slack / Telegram）
+- 协作 / 陌生人协同（WebSocket）
+- 主题 / 宠物市场分享
+
 ## 风险与对策
 
 | 风险 | 对策 |

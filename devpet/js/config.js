@@ -5,7 +5,10 @@
 
 export const CONFIG = {
   APP_NAME: 'DevPet',
-  VERSION: '1.0.0',
+  VERSION: '1.1.0',
+
+  // 宠物默认名称
+  PET_NAME: 'DevPet',
 
   // 吉祥物默认位置
   DEFAULT_POS: { x: 40, y: 40 },
@@ -32,8 +35,14 @@ export const CONFIG = {
 
   // GitHub 作品展示
   GITHUB: {
+    // 默认关联的 GitHub 用户名（可在设置面板修改并持久化）
+    defaultUser: 'octocat',
     // 仅支持公开用户；无 Key 限流严重，主要展示离线数据
     endpoint: (user) => `https://api.github.com/users/${user}/repos?sort=updated&per_page=6`,
+    // 最近提交
+    eventsEndpoint: (user) => `https://api.github.com/users/${user}/events/public?per_page=10`,
+    // 用户信息
+    userEndpoint: (user) => `https://api.github.com/users/${user}`,
   },
 
   // 番茄钟
@@ -47,6 +56,15 @@ export const CONFIG = {
   // 闲置进入睡眠的毫秒数
   SLEEP_AFTER_MS: 30 * 1000,
 
+  // Widget 元信息（标题 / 图标 / 说明，供渲染与排序使用）
+  WIDGET_META: {
+    weather: { title: '天气', icon: '🌤️' },
+    stock: { title: '股票行情', icon: '📈' },
+    crypto: { title: '加密货币', icon: '₿' },
+    github: { title: 'GitHub 作品', icon: '🐙' },
+    pomodoro: { title: '番茄钟', icon: '🍅' },
+  },
+
   // Widget 开关（默认全开）
   DEFAULT_WIDGETS: {
     weather: true,
@@ -54,6 +72,17 @@ export const CONFIG = {
     crypto: true,
     github: true,
     pomodoro: true,
+  },
+
+  // Widget 默认顺序（用于拖拽排序的初始值）
+  DEFAULT_WIDGET_LIST: ['weather', 'stock', 'crypto', 'github', 'pomodoro'],
+
+  // 贡献热图配置
+  CONTRIBUTIONS: {
+    // GitHub 用户主页贡献图（SVG，无需 Key 但有限流）
+    endpoint: (user) => `https://github.com/users/${user}/contributions`,
+    // 离线降级热图数据（28 天）
+    offlineDays: 28,
   },
 
   // 离线降级：默认天气

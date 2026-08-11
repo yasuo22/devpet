@@ -40,6 +40,33 @@
     <button id="btn-lock" class="ctrl-btn" title="锁定/解锁位置">🔒</button>
     <button id="btn-like" class="ctrl-btn" title="点赞">❤️</button>
     <button id="btn-wake" class="ctrl-btn" title="唤醒">🔔</button>
+    <button id="btn-settings" class="ctrl-btn" title="设置 / 关联 GitHub">⚙️</button>
+  </div>
+
+  <!-- ===== 设置面板 ===== -->
+  <div id="settings-panel" class="settings-panel" hidden>
+    <div class="settings-card">
+      <div class="settings-head">
+        <strong>设置 · 关联 GitHub</strong>
+        <button id="btn-close-settings" class="widget-close" title="关闭">✕</button>
+      </div>
+      <label class="field">
+        <span>宠物名称</span>
+        <input id="input-pet-name" type="text" placeholder="DevPet" />
+      </label>
+      <label class="field">
+        <span>职业</span>
+        <input id="input-pet-occupation" type="text" placeholder="开发者伙伴" />
+      </label>
+      <label class="field">
+        <span>GitHub 用户名</span>
+        <input id="input-github-user" type="text" placeholder="octocat" />
+      </label>
+      <div class="btn-row" style="justify-content:flex-end">
+        <button id="btn-save-settings" class="btn primary">保存</button>
+      </div>
+      <div id="settings-msg" class="sub"></div>
+    </div>
   </div>
 
   <!-- ===== Widget 面板 ===== -->
