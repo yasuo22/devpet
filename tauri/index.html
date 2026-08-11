@@ -141,6 +141,24 @@
       </div>
       <div id="settings-msg" class="sub"></div>
 
+      <!-- ===== Codex token 接入 ===== -->
+      <details class="hub-section">
+        <summary>🤖 Codex token 接入</summary>
+        <label class="field">
+          <span>Codex API 端点（可选）</span>
+          <input id="input-codex-endpoint" type="url" placeholder="https://api.openai.com/v1/dashboard/billing/usage" />
+        </label>
+        <label class="field">
+          <span>API Key（可选）</span>
+          <input id="input-codex-key" type="password" placeholder="sk-..." />
+        </label>
+        <div class="btn-row" style="justify-content:flex-end">
+          <button id="btn-save-codex" class="btn primary">保存接入</button>
+          <button id="btn-test-codex" class="btn">测试拉取</button>
+        </div>
+        <div id="codex-msg" class="sub"></div>
+      </details>
+
       <!-- ===== 主题市场（多宠物） ===== -->
       <details class="hub-section" open>
         <summary>🎨 主题市场（多宠物）</summary>

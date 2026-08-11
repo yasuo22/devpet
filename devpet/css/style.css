@@ -627,6 +627,90 @@ button { font-family: inherit; cursor: pointer; }
 .catfood-detail .sub { margin: 2px 0; }
 .catfood-tip { font-size: 11px; }
 
+/* 成长系统 */
+.growth-panel {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}
+.growth-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.growth-level { font-weight: 700; font-size: 13px; }
+.growth-intimacy { font-size: 12px; color: var(--accent-2); }
+.growth-xp-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+.growth-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.growth-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width 0.4s ease;
+}
+
+/* 购买猫粮交易区 */
+.buy-panel { border-top: 1px dashed var(--border); margin-top: 6px; }
+.buy-title { font-size: 12px; }
+.buy-tier {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  background: var(--bg-panel-2);
+}
+.buy-tier.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.buy-tier.locked { opacity: 0.55; }
+.buy-tier-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.buy-tier-name { font-weight: 600; font-size: 13px; }
+.buy-tier-price { color: var(--accent); font-size: 12px; font-weight: 600; }
+.buy-tier-desc { font-size: 11px; margin: 2px 0; }
+.buy-locked { font-size: 11px; }
+
+/* token 上报区 */
+.token-panel { border-top: 1px dashed var(--border); margin-top: 6px; }
+.token-input-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.token-input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--border);
+  background: var(--bg-panel-2);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+.token-input::placeholder { color: var(--text-dim); }
+.token-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 /* 番茄钟 */
 .pomodoro { text-align: center; }
 .pomo-time { font-size: 40px; font-weight: 700; font-variant-numeric: tabular-nums; }

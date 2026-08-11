@@ -12,7 +12,8 @@ import * as store from './store.js';
 import { fetchWeather } from './weather.js';
 import { fetchCrypto, fetchStocks } from './market.js';
 import { fetchRepos, fetchContributions, fetchRecentEvents, getGitHubUser, fetchGitHubUser } from './github.js';
-import { formatFoodStatus, getFoodLevelPercent, getCurrentTier, feed } from './catfood.js';
+import { formatFoodStatus, getFoodLevelPercent, getCurrentTier, feed, buyCatFood, getAllTiers } from './catfood.js';
+import { getGrowthState, formatGrowthSummary, xpNeededForLevel, getLevelProgress, getLevelTitle, addXp, addIntimacy, onInteract, onFocusCompleted, getIntimacyLabel } from './growth.js';
 
 const dashboard = () => document.getElementById('dashboard');
 
@@ -260,7 +261,7 @@ export async function renderGitHub() {
   `;
 }
 
-/* ---------- 番茄钟 ---------- */
+/* ---------- 番茄钟（与成长/猫粮系统联动） ---------- */
 export function renderPomodoro(onStateChange, mascot) {
   const body = mount('widget-pomodoro', CONFIG.WIDGET_META.pomodoro.title, CONFIG.WIDGET_META.pomodoro.icon);
   body.classList.add('pomodoro');
@@ -280,12 +281,16 @@ export function renderPomodoro(onStateChange, mascot) {
       <button class="btn" data-action="reset">重置</button>
       <button class="btn" data-action="skip">跳过</button>
     </div>
+    <div class="pomo-gains sub"></div>
   `;
 
   const timeEl = body.querySelector('.pomo-time');
   const statusEl = body.querySelector('.pomo-status');
   const toggleBtn = body.querySelector('[data-action="toggle"]');
+  const gainsEl = body.querySelector('.pomo-gains');
   let tick = null;
+  let sessionStart = null;  // 当前会话开始的时刻（用于计算专注时长）
+  let focusGainShown = false; // 是否已展示本次专注收益
 
   const fmt = (sec) => {
     const m = String(Math.floor(sec / 60)).padStart(2, '0');
@@ -299,11 +304,24 @@ export function renderPomodoro(onStateChange, mascot) {
     statusEl.textContent = state.running ? labels[state.mode] : '已暂停';
     toggleBtn.textContent = state.running ? '暂停' : '开始';
     if (onStateChange) onStateChange(state.running ? 'working' : 'idle');
+
+    // 显示预估收益（专注时）
+    if (state.mode === 'work' && state.running) {
+      const elapsedMin = sessionStart ? Math.floor((Date.now() - sessionStart) / 60000) : 0;
+      const xpGain = CONFIG.GROWTH.FOCUS_XP_PER_MIN * Math.max(0, elapsedMin);
+      gainsEl.textContent = `⏱ 已专注 ${elapsedMin} 分钟 · 预计 +${xpGain} XP`;
+    } else if (!state.running && state.mode === 'work') {
+      gainsEl.textContent = '完成一个专注会话可获得经验与亲密度';
+    } else {
+      gainsEl.textContent = '';
+    }
   };
 
   const start = () => {
     if (state.running) return;
     state.running = true;
+    sessionStart = Date.now();
+    focusGainShown = false;
     render();
     tick = setInterval(() => {
       state.remaining--;
@@ -326,10 +344,26 @@ export function renderPomodoro(onStateChange, mascot) {
   };
 
   /**
-   * 会话结束时：切换到下一个会话并触发「桌面壳联动」系统通知。
+   * 会话结束时：切换到下一个会话、触发系统通知、结算成长收益。
    * @param {string} finishedMode 刚结束的会话 work|shortBreak|longBreak
    */
   const advance = (finishedMode = state.mode) => {
+    // 结算成长收益（仅专注会话有收益）
+    if (finishedMode === 'work' && sessionStart) {
+      const focusMinutes = Math.max(1, Math.floor((Date.now() - sessionStart) / 60000));
+      // 与成长系统联动：专注获得 XP + 亲密度
+      const result = onFocusCompleted(focusMinutes, 'work');
+      // 展示收益
+      if (mascot && mascot.say) {
+        mascot.say(`🍅 专注 ${focusMinutes} 分钟，+${result.xpGained} XP，亲密度 +${result.intimacyGained}`);
+      }
+      if (result.leveledUp) {
+        const title = getLevelTitle(result.state.level);
+        if (mascot && mascot.say) mascot.say(`🎉 升级！现在是 Lv.${result.state.level} ${title.title}`);
+      }
+      focusGainShown = true;
+    }
+
     if (finishedMode === 'work') {
       state.cycle++;
       state.mode = state.cycle % CONFIG.POMODORO.cyclesBeforeLong === 0 ? 'longBreak' : 'shortBreak';
@@ -337,6 +371,7 @@ export function renderPomodoro(onStateChange, mascot) {
       state.mode = 'work';
     }
     state.remaining = CONFIG.POMODORO[state.mode];
+    sessionStart = state.mode === 'work' ? Date.now() : null;
     render();
     notifySessionEnd(finishedMode, state.mode);
   };
@@ -345,6 +380,7 @@ export function renderPomodoro(onStateChange, mascot) {
     pause();
     state.mode = 'work';
     state.remaining = CONFIG.POMODORO.work;
+    sessionStart = null;
     render();
   };
 
@@ -357,7 +393,13 @@ export function renderPomodoro(onStateChange, mascot) {
    */
   const notifySessionEnd = (finished, next) => {
     const name = (p) => ({ work: '专注工作', shortBreak: '短休息', longBreak: '长休息' }[p] || p);
-    const body = `「${name(finished)}」已结束，开始「${name(next)}」`;
+    let body = `「${name(finished)}」已结束，开始「${name(next)}」`;
+
+    // 专注结束额外提示收益
+    if (finished === 'work') {
+      const g = getGrowthState();
+      body = `「${name(finished)}」已结束，开始「${name(next)}」\n🏅 当前 Lv.${g.level} · 亲密度 ${g.intimacy}%`;
+    }
 
     const native = window.__DEVPET_NATIVE__;
     const say = () => { if (mascot && typeof mascot.say === 'function') mascot.say(body); };
@@ -368,11 +410,9 @@ export function renderPomodoro(onStateChange, mascot) {
     }).catch(() => {});
 
     if (native && typeof native.notify === 'function') {
-      // 桌面壳：发原生系统通知（并在宠物上同步提示）
       native.notify('🍅 番茄钟提醒', body).catch(say);
       say();
     } else {
-      // 浏览器：仅用泡泡提示
       say();
     }
   };
@@ -386,64 +426,162 @@ export function renderPomodoro(onStateChange, mascot) {
   });
 
   render();
-  return { pause, start, reset };
+  return { pause, start, reset, isRunning: () => state.running && state.mode === 'work' };
 }
 
-/* ---------- 猫粮状态 ---------- */
+/* ---------- 猫粮购买交易 + 成长系统 ---------- */
 export function renderCatFood(mascot) {
   const body = mount('widget-catfood', CONFIG.WIDGET_META.catfood.title, CONFIG.WIDGET_META.catfood.icon);
   const status = formatFoodStatus();
   const tier = getCurrentTier();
   const percent = getFoodLevelPercent();
+  const growthState = getGrowthState();
+  const allTiers = getAllTiers(growthState.level);
 
   // 饥饿度状态条颜色
   const barColor = percent <= 30 ? 'var(--bad)' : percent <= 60 ? 'var(--warn)' : 'var(--ok)';
 
+  // 成长面板 HTML
+  const growthTitle = getLevelTitle(growthState.level);
+  const growthProgress = getLevelProgress();
+  const xpNeeded = xpNeededForLevel(growthState.level);
+  const intimacyLabel = getIntimacyLabel(growthState.intimacy);
+
   body.innerHTML = `
+    <!-- 成长状态 -->
+    <div class="growth-panel">
+      <div class="growth-row">
+        <span class="growth-level">🏅 Lv.${growthState.level} ${growthTitle.title}</span>
+        <span class="growth-intimacy">${intimacyLabel}</span>
+      </div>
+      <div class="growth-xp-row">
+        <span class="sub">XP ${growthState.xp}/${xpNeeded}</span>
+        <span class="sub">亲密度 ${growthState.intimacy}%</span>
+      </div>
+      <div class="growth-bar">
+        <div class="growth-fill" style="width:${growthProgress}%"></div>
+      </div>
+      <div class="sub" style="margin-top:2px;font-size:11px">投喂 ${growthState.totalFeed} 次 · 专注 ${growthState.totalFocus} 次</div>
+    </div>
+
+    <!-- 猫粮存量 -->
     <div class="catfood-status">
       <div class="catfood-row">
-        <span class="catfood-tier">🐾 ${tier.name}</span>
+        <span class="catfood-tier">${tier.icon} ${tier.name}</span>
         <span class="catfood-percent">${percent}%</span>
       </div>
       <div class="catfood-bar">
         <div class="catfood-fill" style="width:${percent}%;background:${barColor}"></div>
       </div>
       <div class="catfood-detail">
-        <div class="sub">累计 token：${status.state.totalTokens.toLocaleString()}</div>
-        <div class="sub">猫粮存量：${Math.round(status.state.currentFood)}g / ${status.state.maxFood}g</div>
-        <div class="sub">距上次喂食：${Math.floor((Date.now() - status.state.lastFeedAt) / (60*60*1000))} 小时</div>
+        <div class="sub">💳 钱包：${status.state.walletTokens.toLocaleString()} tokens</div>
+        <div class="sub">📦 存量：${Math.round(status.state.currentFood)}g / ${status.state.maxFood}g</div>
+        <div class="sub">⏱ 距上次喂食：${Math.floor((Date.now() - status.state.lastFeedAt) / (60*60*1000))} 小时</div>
       </div>
-      <div class="btn-row" style="margin-top:8px;justify-content:flex-start">
-        <button class="btn primary btn-feed" data-feed="full">🍖 投喂</button>
-        <button class="btn" data-tokens="1000">+1k tokens</button>
-        <button class="btn" data-tokens="10000">+10k tokens</button>
+    </div>
+
+    <!-- 投喂按钮 -->
+    <div class="btn-row" style="margin-top:8px;justify-content:flex-start">
+      <button class="btn primary btn-feed" data-feed="full">🍖 投喂</button>
+      <button class="btn" data-feed="10">投喂 10g</button>
+      <button class="btn" data-interact>💬 互动</button>
+    </div>
+
+    <!-- 购买猫粮交易区 -->
+    <div class="buy-panel">
+      <div class="sub buy-title" style="margin:10px 0 4px;font-weight:600">🛒 购买猫粮（token 交易）</div>
+      ${allTiers.map((t) => `
+        <div class="buy-tier ${t.id === tier.id ? 'active' : ''} ${t.locked ? 'locked' : ''}">
+          <div class="buy-tier-head">
+            <span class="buy-tier-name">${t.icon} ${t.name}</span>
+            <span class="buy-tier-price">${t.pricePerGram} token/g</span>
+          </div>
+          <div class="buy-tier-desc sub">${t.desc}</div>
+          ${t.locked ? `<div class="sub buy-locked" style="color:var(--warn)">🔒 需要 Lv.${t.levelReq}</div>` : `
+          <div class="btn-row" style="margin-top:4px;justify-content:flex-start">
+            <button class="btn btn-buy" data-tier="${t.id}" data-grams="10">买 10g</button>
+            <button class="btn btn-buy" data-tier="${t.id}" data-grams="20">买 20g</button>
+            <button class="btn btn-buy" data-tier="${t.id}" data-grams="50">买 50g</button>
+          </div>`}
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- token 上报区 -->
+    <div class="token-panel">
+      <div class="sub" style="margin:10px 0 4px;font-weight:600">📊 上报 Codex token 消耗</div>
+      <div class="token-input-row">
+        <input class="token-input" id="token-input" type="number" min="0" placeholder="输入本次消耗的 token 数" />
+        <button class="btn primary" data-report-token>上报</button>
       </div>
-      <div class="catfood-tip sub" style="margin-top:6px">${tier.desc}</div>
+      <div class="sub" style="margin-top:4px">累计消耗：${status.state.totalTokens.toLocaleString()} tokens</div>
     </div>
   `;
 
   // 投喂按钮
-  body.querySelector('[data-feed]')?.addEventListener('click', () => {
-    const result = feed();
-    renderCatFood(mascot);
-    if (mascot && mascot.say) mascot.say('😋 吃饱啦！谢谢主人～');
+  body.querySelectorAll('[data-feed]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const grams = btn.dataset.feed === 'full' ? undefined : parseInt(btn.dataset.feed, 10);
+      const result = feed(grams);
+      if (result.ok) {
+        renderCatFood(mascot);
+        const g = result.growth;
+        let msg = `😋 投喂 ${result.fedGrams}g！亲密度 +${g.intimacyGained}，XP +${g.xpGained}`;
+        if (g.leveledUp) msg += `，升级到 Lv.${g.state.level}！`;
+        if (mascot && mascot.say) mascot.say(msg);
+      } else {
+        if (mascot && mascot.say) mascot.say(result.error);
+      }
+    });
   });
 
-  // 模拟 token 消耗按钮（用于演示）
-  body.querySelectorAll('[data-tokens]').forEach((btn) => {
+  // 互动按钮
+  body.querySelector('[data-interact]')?.addEventListener('click', () => {
+    const result = onInteract();
+    renderCatFood(mascot);
+    if (mascot && mascot.say) {
+      let msg = `💬 互动 +${result.xpGained} XP，亲密度 +${result.intimacyGained}`;
+      if (result.leveledUp) msg += `，升级到 Lv.${result.state.level}！`;
+      mascot.say(msg);
+    }
+  });
+
+  // 购买猫粮按钮
+  body.querySelectorAll('.btn-buy').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const tokens = parseInt(btn.dataset.tokens, 10);
-      if (window.DevPet && window.DevPet.addTokens) {
-        window.DevPet.addTokens(tokens);
+      const tierId = btn.dataset.tier;
+      const grams = parseInt(btn.dataset.grams, 10);
+      const result = buyCatFood(tierId, grams);
+      if (result.ok) {
+        renderCatFood(mascot);
+        if (mascot && mascot.say) {
+          mascot.say(`🛒 购买了 ${result.grams}g ${result.tier.name}，花费 ${result.cost.toLocaleString()} tokens`);
+        }
+      } else {
+        if (mascot && mascot.say) mascot.say(result.error);
       }
-      renderCatFood(mascot);
-      if (mascot && mascot.say) mascot.say(`📊 消耗了 ${tokens.toLocaleString()} tokens`);
     });
+  });
+
+  // 上报 token 按钮
+  body.querySelector('[data-report-token]')?.addEventListener('click', () => {
+    const input = body.querySelector('#token-input');
+    const val = parseInt(input?.value || '0', 10);
+    if (val <= 0) {
+      if (mascot && mascot.say) mascot.say('请输入有效的 token 数量');
+      return;
+    }
+    // 通过全局 API 上报（已由 app.js 绑定到 codex.js）
+    if (window.DevPet && window.DevPet.reportTokens) {
+      window.DevPet.reportTokens(val, { source: 'manual', note: 'widget 手动上报' });
+    }
+    renderCatFood(mascot);
+    if (mascot && mascot.say) mascot.say(`📊 已上报 ${val.toLocaleString()} tokens，已入钱包`);
   });
 }
 
 /* ---------- 根据 pet.widgets 渲染所有启用的 Widget ---------- */
-export async function renderAllWidgets(mascot) {
+export async function renderAllWidgets(mascot, onPomodoro) {
   const order = widgetOrder();
   const enabled = getPet().widgets;
   const pet = getPet();
@@ -458,7 +596,12 @@ export async function renderAllWidgets(mascot) {
       case 'stock': jobs.push(renderStock()); break;
       case 'crypto': jobs.push(renderCrypto()); break;
       case 'github': jobs.push(renderGitHub()); break;
-      case 'pomodoro': jobs.push(Promise.resolve(renderPomodoro((m) => mascot.setMood(m, { silent: true }), mascot))); break;
+      case 'pomodoro': {
+        const pomo = renderPomodoro((m) => mascot.setMood(m, { silent: true }), mascot);
+        if (onPomodoro) onPomodoro(pomo);
+        jobs.push(Promise.resolve(pomo));
+        break;
+      }
       case 'catfood': jobs.push(Promise.resolve(renderCatFood(mascot))); break;
     }
   }

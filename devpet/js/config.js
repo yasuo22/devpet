@@ -199,25 +199,118 @@ export const CONFIG = {
   },
 
   // ============================================================
-  // 猫粮系统（Codex token 消耗 → 猫粮积累 → 定时喂食）
+  // Codex token 用量接入
+  // ============================================================
+  CODEX: {
+    // 自动拉取 API 数据的刷新间隔（默认 10 分钟）
+    REFRESH_MS: 10 * 60 * 1000,
+    // 存储 key
+    STORE_KEY: 'codexUsage',
+  },
+
+  // ============================================================
+  // 宠物成长系统（亲密度 / 经验 / 等级）
+  // ============================================================
+  GROWTH: {
+    // 每级基础经验（第 1 级需要这么多 XP）
+    BASE_XP: 100,
+    // 等级经验增长系数（每级所需 = BASE_XP * GROWTH ^ (level-1)）
+    LEVEL_GROWTH: 1.4,
+
+    // 亲密度自然衰减：超过 6 小时未互动开始衰减
+    INTIMACY_DECAY_MS: 6 * 60 * 60 * 1000,
+    // 衰减速度：每分钟减少的亲密度
+    INTIMACY_DECAY_PER_MIN: 0.05,
+    // 单次触发最大衰减量
+    INTIMACY_DECAY_CAP: 10,
+
+    // 投喂：每克获得 X XP（最少 2 XP）
+    XP_PER_FEED: 2,
+    // 投喂：每多少克猫粮获得 1 XP
+    FEED_XP_PER_GRAM: 10,
+    // 单次投喂最多获得 XP
+    MAX_XP_PER_FEED: 50,
+
+    // 互动（点赞/点击）获得
+    INTERACT_XP: 5,
+    INTERACT_INTIMACY: 1,
+
+    // 番茄钟专注：每分钟获得 XP
+    FOCUS_XP_PER_MIN: 3,
+    // 完成一次专注会话获得亲密度
+    FOCUS_INTIMACY: 3,
+
+    // 等级称号
+    LEVEL_TITLES: [
+      { minLevel: 1, title: '🐣 幼崽' },
+      { minLevel: 3, title: '🐾 成长中' },
+      { minLevel: 5, title: '🐱 活跃伙伴' },
+      { minLevel: 8, title: '🦁 得力助手' },
+      { minLevel: 12, title: '🐯 开发守护神' },
+      { minLevel: 16, title: '👑 传奇伙伴' },
+    ],
+
+    // 猫粮档次解锁等级
+    TIER_UNLOCK_LEVELS: [
+      { tier: 'kibble', level: 1 },
+      { tier: 'salmon', level: 3 },
+      { tier: 'tuna', level: 6 },
+      { tier: 'wagyu', level: 10 },
+    ],
+
+    // 存储 key
+    STORE_KEY: 'growth',
+  },
+
+  // ============================================================
+  // 猫粮购买交易系统（token 货币 → 购买不同档次猫粮）
   // ============================================================
   CATFOOD: {
-    // 每消耗多少 token 积累 1 克猫粮
-    TOKENS_PER_GRAM: 1000,
-    // 猫粮饥饿度上限（克），满格表示吃饱
+    // 猫粮存量上限（克），满格表示吃饱
     MAX_FOOD: 100,
     // 每隔多少毫秒需要喂食（默认 4 小时）
     FEED_INTERVAL_MS: 4 * 60 * 60 * 1000,
+    // 专注模式下喂食间隔延长倍数（消耗变慢）
+    FOCUS_INTERVAL_MULTIPLIER: 1.5,
     // 饥饿警告阈值（低于此值提醒投喂）
     HUNGRY_THRESHOLD: 30,
     // 存储 key
     STORE_KEY: 'catfood',
-    // 不同猫粮档次（按 token 消耗定价）
+
+    // 猫粮档次（token 货币购买，pricePerGram = 每克 token 价）
     TIERS: [
-      { id: 'kibble', name: '基础猫粮', pricePerGram: 1, minTokens: 0, desc: '普通干粮，token 消耗 0~10k' },
-      { id: 'salmon', name: '三文鱼猫粮', pricePerGram: 2, minTokens: 10000, desc: '优质猫粮，token 消耗 10k~50k' },
-      { id: 'tuna', name: '金枪鱼猫粮', pricePerGram: 5, minTokens: 50000, desc: '豪华猫粮，token 消耗 50k~100k' },
-      { id: 'wagyu', name: '和牛猫粮', pricePerGram: 10, minTokens: 100000, desc: '顶级猫粮，token 消耗 100k+' },
+      {
+        id: 'kibble',
+        name: '基础猫粮',
+        icon: '🌾',
+        pricePerGram: 1,
+        desc: '普通干粮，经济实惠，1 token/克',
+        intimacyBonus: 1,   // 亲密度加成倍率
+      },
+      {
+        id: 'salmon',
+        name: '三文鱼猫粮',
+        icon: '🐟',
+        pricePerGram: 2,
+        desc: '优质三文鱼配方，2 token/克',
+        intimacyBonus: 1.5,
+      },
+      {
+        id: 'tuna',
+        name: '金枪鱼猫粮',
+        icon: '🍣',
+        pricePerGram: 5,
+        desc: '豪华金枪鱼盛宴，5 token/克',
+        intimacyBonus: 2,
+      },
+      {
+        id: 'wagyu',
+        name: '和牛猫粮',
+        icon: '🥩',
+        pricePerGram: 10,
+        desc: '顶级和牛特供，10 token/克，亲密度翻倍',
+        intimacyBonus: 3,
+      },
     ],
   },
 

@@ -11,6 +11,8 @@ import { renderProfileCard, like, showBubble, enqueueBubble } from './social.js'
 import { getGitHubUser, setGitHubUser } from './github.js';
 import { ActivityTracker } from './activity.js';
 import { initCatFoodSystem, addTokens, getFoodLevelPercent, formatFoodStatus, feed } from './catfood.js';
+import { reportTokens, initCodexMonitor, configureCodexApi, getCodexState, formatCodexSummary, fetchTokensFromApi } from './codex.js';
+import { onInteract, onFeed, getGrowthState, formatGrowthSummary } from './growth.js';
 import * as store from './store.js';
 
 // hub（主题市场 / 通知 / 协作）按需加载
@@ -23,6 +25,7 @@ const app = {
   bootedAt: Date.now(),
   activityTracker: null,
   catFoodCleanup: null,
+  codexCleanup: null,
 };
 
 /**
@@ -39,7 +42,7 @@ async function init() {
   renderProfileCard();
 
   // 3. 渲染各 Widget（按 pet.widgets 顺序，含拖拽/开关）
-  await renderAllWidgets(app.mascot);
+  await renderAllWidgets(app.mascot, (pomo) => { app.pomodoro = pomo; });
 
   // 4. 绑定控制栏事件
   bindControls();
@@ -53,6 +56,12 @@ async function init() {
 
   // 5.2 初始化猫粮系统（狸花猫模式启用）
   initFoodSystem();
+
+  // 5.3 初始化 Codex token 监控（全模式启用，对接真实数据）
+  initCodexMonitoring();
+
+  // 5.4 初始化成长系统（全模式启用）
+  initGrowthSystem();
 
   // 5.5 hub：渲染预设宠物网格 + 检查协作邀请链接
   initHub();
@@ -108,11 +117,21 @@ function initActivityTracking() {
 function initFoodSystem() {
   const pet = getPet();
   const isTabbyCat = pet.preset === 'tabby' || pet.name === '花狸';
-  
-  // 仅狸花猫模式启用猫粮系统
+
+  // 暴露猫粮操作到全局（对所有模式生效，让 widget 可调用）
+  window.DevPet = window.DevPet || {};
+  window.DevPet.addTokens = addTokens;
+  window.DevPet.feed = feed;
+  window.DevPet.foodStatus = formatFoodStatus;
+
+  // 仅狸花猫模式启用定时提醒
   if (!isTabbyCat) return;
   
   app.catFoodCleanup = initCatFoodSystem({
+    isFocused: () => {
+      // 检查番茄钟是否正在专注中
+      return app.pomodoro !== null && typeof app.pomodoro.isRunning === 'function' ? app.pomodoro.isRunning() : false;
+    },
     onHungry: (state) => {
       enqueueBubble({ 
         text: `😿 ${pet.name}饿了！猫粮只剩 ${Math.round(state.currentFood)}g，请投喂～`, 
@@ -131,12 +150,53 @@ function initFoodSystem() {
       // 定时刷新猫粮状态显示（不需要额外操作，状态在泡泡中已展示）
     },
   });
-  
-  // 暴露猫粮操作到全局
+}
+
+/**
+ * 初始化 Codex token 监控（全模式启用）
+ * 若已配置 API 端点，则定时拉取真实 token 数据；否则仅支持手动上报。
+ */
+function initCodexMonitoring() {
+  // 暴露 Codex 相关操作到全局
   window.DevPet = window.DevPet || {};
-  window.DevPet.addTokens = addTokens;
-  window.DevPet.feed = feed;
-  window.DevPet.foodStatus = formatFoodStatus;
+  window.DevPet.reportTokens = reportTokens;
+  window.DevPet.getCodexState = getCodexState;
+  window.DevPet.codexSummary = formatCodexSummary;
+  window.DevPet.configureCodexApi = configureCodexApi;
+
+  // 检查是否已配置 API
+  const codexState = getCodexState();
+  if (codexState.apiEndpoint) {
+    app.codexCleanup = initCodexMonitor({
+      onSync: (res) => {
+        enqueueBubble({
+          text: `🤖 Codex API 同步：+${res.tokens.toLocaleString()} tokens`,
+          type: 'normal',
+          priority: 5,
+        });
+        // 同步到猫粮钱包
+        if (window.DevPet && window.DevPet.addTokens) {
+          window.DevPet.addTokens(res.tokens);
+        }
+      },
+      onError: (err) => {
+        // 静默失败，不打扰用户
+      },
+    });
+  }
+}
+
+/**
+ * 初始化成长系统（全模式启用）
+ * 仅初始化显示所需的数据，实际交互通过猫粮/互动触发。
+ */
+function initGrowthSystem() {
+  // 暴露成长系统到全局
+  window.DevPet = window.DevPet || {};
+  window.DevPet.growth = getGrowthState();
+  window.DevPet.growthSummary = formatGrowthSummary;
+  window.DevPet.growthOnInteract = onInteract;
+  window.DevPet.growthOnFeed = onFeed;
 }
 
 /**
@@ -203,6 +263,13 @@ function bindControls() {
     document.getElementById('input-pet-color-dark').value = pet.color.dark;
     document.getElementById('input-github-user').value = getGitHubUser();
     document.getElementById('settings-msg').textContent = '';
+
+    // Codex 配置回填
+    const codexState = getCodexState();
+    document.getElementById('input-codex-endpoint').value = codexState.apiEndpoint || '';
+    document.getElementById('input-codex-key').value = codexState.apiKey || '';
+    document.getElementById('codex-msg').textContent = '';
+
     // hub 面板数据（Webhook / 协作状态）
     loadHub().then(({ getWebhooks, getCollab, renderPresetGrid }) => {
       const wh = getWebhooks();
@@ -223,6 +290,59 @@ function bindControls() {
   };
   settingsBtn.addEventListener('click', openSettings);
   document.getElementById('btn-close-settings').addEventListener('click', () => { panel.hidden = true; });
+
+  // Codex 接入配置
+  document.getElementById('btn-save-codex').addEventListener('click', () => {
+    const endpoint = document.getElementById('input-codex-endpoint').value.trim();
+    const key = document.getElementById('input-codex-key').value.trim();
+    configureCodexApi(endpoint, key);
+
+    // 重新初始化监控
+    if (app.codexCleanup) {
+      app.codexCleanup();
+      app.codexCleanup = null;
+    }
+    if (endpoint) {
+      app.codexCleanup = initCodexMonitor({
+        onSync: (res) => {
+          enqueueBubble({
+            text: `🤖 Codex API 同步：+${res.tokens.toLocaleString()} tokens`,
+            type: 'normal',
+            priority: 5,
+          });
+          if (window.DevPet && window.DevPet.addTokens) {
+            window.DevPet.addTokens(res.tokens);
+          }
+        },
+        onError: (err) => {},
+      });
+    }
+
+    document.getElementById('codex-msg').textContent = '✅ 已保存 Codex API 配置';
+    showBubble('✅ Codex API 接入已配置');
+  });
+
+  document.getElementById('btn-test-codex').addEventListener('click', async () => {
+    const endpoint = document.getElementById('input-codex-endpoint').value.trim();
+    const key = document.getElementById('input-codex-key').value.trim();
+    if (!endpoint) {
+      document.getElementById('codex-msg').textContent = '⚠️ 请先填写 API 端点';
+      return;
+    }
+    configureCodexApi(endpoint, key);
+    document.getElementById('codex-msg').textContent = '⏳ 正在测试拉取...';
+    const res = await fetchTokensFromApi();
+    if (res.ok) {
+      document.getElementById('codex-msg').textContent = `✅ 拉取成功：${res.tokens.toLocaleString()} tokens`;
+      // 同步到猫粮钱包
+      if (window.DevPet && window.DevPet.addTokens) {
+        window.DevPet.addTokens(res.tokens);
+      }
+      showBubble(`🤖 拉取到 ${res.tokens.toLocaleString()} tokens`);
+    } else {
+      document.getElementById('codex-msg').textContent = '❌ ' + (res.error || '拉取失败');
+    }
+  });
 
   // 颜色变化时实时更新预览
   ['input-pet-color-body', 'input-pet-color-dark'].forEach((id) => {
@@ -313,7 +433,7 @@ function applyPetToMascot(pet) {
   }
   
   // 重新渲染 Widget（切换宠物后更新 catfood widget 等）
-  renderAllWidgets(app.mascot).catch(() => {});
+  renderAllWidgets(app.mascot, (pomo) => { app.pomodoro = pomo; }).catch(() => {});
 }
 
 /**
@@ -415,7 +535,7 @@ window.DevPet = {
   setGitHubUser,
   getPet,
   savePet,
-  refresh: () => renderAllWidgets(app.mascot),
+  refresh: () => renderAllWidgets(app.mascot, (pomo) => { app.pomodoro = pomo; }),
 };
 
 // 入口

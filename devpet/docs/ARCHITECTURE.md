@@ -14,11 +14,13 @@ index.html ──► js/app.js ──► 初始化各模块
                     ├──► weather.js  （天气数据）
                     ├──► market.js   （股票/加密数据）
                     ├──► github.js   （GitHub 作品/热图/账号关联）
-                    ├──► widgets.js  （Widget 渲染 + 拖拽/开关 + 猫粮状态）
+                    ├──► widgets.js  （Widget 渲染 + 拖拽/开关 + 猫粮购买 + 成长面板）
                     ├──► social.js   （社交层 + 泡泡优先级队列）
                     ├──► hub.js      （控制中心：主题市场/通知服务/协作模式）
                     ├──► activity.js （用户活动检测 → 追蝴蝶/睡眠）
-                    ├──► catfood.js  （猫粮系统：token→猫粮→投喂）
+                    ├──► catfood.js  （猫粮购买交易系统：token钱包→购买→投喂）
+                    ├──► growth.js   （宠物成长系统：亲密度/经验/等级）
+                    ├──► codex.js    （Codex token 真实数据接入）
                     └──► store.js    （状态持久化，被各模块复用）
 ```
 
@@ -30,7 +32,9 @@ index.html ──► js/app.js ──► 初始化各模块
 | `store.js` | localStorage 封装（get/set/默认值） | config |
 | `mascot.js` | 宠物状态机、天气反应、拖拽、锁定、追蝴蝶、猫窝睡眠 | config, store, pet |
 | `activity.js` | 用户输入活动检测（键盘/鼠标/触摸/滚动） | config, store |
-| `catfood.js` | 猫粮系统（token→猫粮换算、投喂提醒） | config, store |
+| `catfood.js` | 猫粮购买交易系统（token钱包→购买档次猫粮→投喂） | config, store, growth |
+| `growth.js` | 宠物成长系统（亲密度/经验/等级/解锁） | config, store |
+| `codex.js` | Codex token 真实数据接入（API/手动上报/持久化） | config, store |
 | `pet.js` | 宠物元数据 Schema（get/save + 校验） | config, store |
 | `weather.js` | 天气获取，API 失败时用离线数据 | config |
 | `market.js` | 股票 / 加密货币行情 | config |
@@ -91,13 +95,28 @@ locked ─► 所有状态中拖拽被禁用
 - **活跃**：用户正在输入 → `mascot.onUserActive()` → 进入 `chase` 状态追蝴蝶
 - **闲置**：停止输入超过 15 分钟 → `mascot.onUserIdle()` → 进入 `sleep` 状态睡猫窝
 
-### 猫粮系统
-`catfood.js` 管理 token 消耗到猫粮的换算：
-- `addTokens(tokens)`：记录 token 消耗，按 `1000 token = 1g` 积累猫粮
-- `feed()`：手动投喂，补满猫粮
-- `checkFeedStatus()`：每 60 秒检查是否需要提醒投喂（每 4 小时）
-- 猫粮档次按累计 token 消耗自动升级（基础/三文鱼/金枪鱼/和牛）
-- `widgets.js` 的 `renderCatFood()` 渲染猫粮状态面板
+### 猫粮购买交易系统
+`catfood.js` 实现了基于 token 货币的购买交易系统：
+- **token 钱包**：`addTokens(tokens)` 把 Codex token 消耗加入钱包（作为货币）
+- **购买交易**：`buyCatFood(tierId, grams)` 用钱包 token 购买不同档次的猫粮（基础/三文鱼/金枪鱼/和牛，不同单价）
+- **等级解锁**：高档猫粮需成长系统达到对应等级（`growth.js` 的 `unlockedTiers`）
+- **投喂**：`feed(grams)` 消耗存量猫粮，同步提升亲密度与经验（联动 `growth.onFeed`）
+- **定时提醒**：`initCatFoodSystem` 每 60 秒检查投喂状态，专注模式（番茄钟 running）下间隔延长
+- **Widget 界面**：`renderCatFood()` 渲染成长面板 + 存量条 + 购买按钮 + token 上报区
+
+### 宠物成长系统（growth.js）
+- `getGrowthState()`：读取亲密度/等级/经验/解锁状态，自动计算亲密度自然衰减
+- `addXp(amount)`：增加经验并处理升级（连续升级循环）
+- `addIntimacy(amount, reason)`：增加亲密度，记录交互来源（feed/interact/focus）
+- `onFeed(grams)` / `onInteract()` / `onFocusCompleted()`：各交互入口的便捷封装
+- 等级提升时自动解锁对应猫粮档次
+
+### Codex token 接入（codex.js）
+- `reportTokens(tokens, meta)`：真实 token 数据入口，累计/今日/每日历史
+- `fetchTokensFromApi()`：从配置的 API 端点拉取 token（兼容多种返回结构）
+- `configureCodexApi(endpoint, key)`：保存 API 配置
+- `initCodexMonitor()`：若已配置 API，每 10 分钟自动拉取
+- 猫粮钱包通过 `addTokens()` 自动同步
 
 ## 主题
 
