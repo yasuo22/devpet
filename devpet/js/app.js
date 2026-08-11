@@ -207,7 +207,6 @@ function initCodingActivity() {
 
   const monitor = new CodingActivityMonitor({
     onCodingActive: ({ delta, shouldBubble }) => {
-      const pet = getPet();
       // 宠物进入 working 状态（若当前是 idle/sleep）
       if (app.mascot && ['idle', 'sleep', 'happy', 'sad'].includes(app.mascot.mood)) {
         app.mascot.setMood('working', { silent: true });
