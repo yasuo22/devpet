@@ -33,25 +33,27 @@
             echo "==> 构建 Tauri Web 前端"
             npm --prefix tauri run build
             test -d tauri/src && echo "==> 前端产物已生成到 tauri/src"
-        - name: 同步到 GitHub
-          image: tencentcom/git-sync
-          settings:
-            target_url: https://github.com/yasuo22/devpet.git
-            auth_type: https
-            username: yasuo22
-            password: $GITHUB_SYNC_TOKEN
-            branch: main
-        - name: 同步 Release Tag 到 GitHub
+        - name: 同步到 GitHub（含 Release Tag）
           script: |
             set -e
             command -v git >/dev/null 2>&1 || { echo "==> 镜像缺少 git，安装中"; apt-get update -qq && apt-get install -y -qq git >/dev/null 2>&1; }
-            echo "==> 同步所有 Release Tag 到 GitHub"
-            # 通过 credential.helper 提供认证，避免 token 写入日志
+            echo "==> 配置 GitHub 认证（不打印 token）"
             git config --global credential.helper '!f() { echo "username=yasuo22"; echo "password=${GITHUB_SYNC_TOKEN}"; }; f'
             git remote remove github 2>/dev/null || true
             git remote add github https://github.com/yasuo22/devpet.git
-            git push --tags github
-            echo "==> Release Tag 同步完成"
+            echo "==> 同步 main 分支到 GitHub"
+            git fetch github main 2>&1 || true
+            if git push github main 2>&1; then
+              echo "==> main 推送成功"
+            else
+              echo "==> main 分叉，合并 GitHub 侧提交后重试"
+              git merge github/main --no-edit -m "Merge GitHub main (同步)" 2>&1
+              git push github main 2>&1
+              echo "==> main 合并推送成功"
+            fi
+            echo "==> 同步所有 Release Tag 到 GitHub"
+            git push --tags github 2>&1
+            echo "==> 同步完成"
   pull_request:
     - name: devpet-build
       runner:
