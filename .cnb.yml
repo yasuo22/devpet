@@ -51,6 +51,8 @@
               git push github main 2>&1
               echo "==> main 合并推送成功"
             fi
+            echo "==> 获取 CNB 侧 Release Tag"
+            git fetch origin --tags 2>&1 || true
             echo "==> 同步所有 Release Tag 到 GitHub"
             git push --tags github 2>&1
             echo "==> 同步完成"
