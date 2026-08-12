@@ -65,22 +65,61 @@
           script: |
             set -e
             command -v git >/dev/null 2>&1 || { echo "==> 镜像缺少 git，安装中"; apt-get update -qq && apt-get install -y -qq git >/dev/null 2>&1; }
+            command -v curl >/dev/null 2>&1 || { echo "==> 镜像缺少 curl，安装中"; apt-get update -qq && apt-get install -y -qq curl >/dev/null 2>&1; }
             echo "==> 配置 GitHub 认证（不打印 token）"
             git config --global credential.helper '!f() { echo "username=yasuo22"; echo "password=${GITHUB_SYNC_TOKEN}"; }; f'
-            echo "==> 将 chatgpt-plugin/ 目录作为独立仓库推送到 github.com/yasuo22/devpet-chatgpt-plugin"
+
+            # 目标仓库（正确目标）
+            GH_OWNER=yasuo22
+            GH_TARGET=chatgpt-petplugin
+            GH_OLD=devpet-chatgpt-plugin
+            GH_URL="https://github.com/${GH_OWNER}/${GH_TARGET}.git"
+            GH_API="https://api.github.com/repos/${GH_OWNER}/${GH_TARGET}"
+
+            echo "==> [1/4] 删除 GitHub 上之前推送的分支/旧仓库残留"
+            # 旧目标仓库（如果存在）—— 删除其 main 分支，避免残留误导
+            OLD_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://api.github.com/repos/${GH_OWNER}/${GH_OLD})
+            if [ "$OLD_CODE" = "200" ]; then
+              echo "==> 删除旧仓库 ${GH_OWNER}/${GH_OLD} 的 main 分支"
+              git push "https://yasuo22:${GITHUB_SYNC_TOKEN}@github.com/${GH_OWNER}/${GH_OLD}.git" --delete main 2>&1 || echo "==> 旧仓库 main 分支删除失败或不存在"
+            else
+              echo "==> 旧仓库 ${GH_OWNER}/${GH_OLD} 不存在（${OLD_CODE}），无需删除"
+            fi
+            # 新目标仓库（如果已存在）—— 清空 main 分支，重新推送
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" ${GH_API})
+            if [ "$CODE" = "200" ]; then
+              echo "==> 目标仓库 ${GH_OWNER}/${GH_TARGET} 已存在，删除其 main 分支以重新推送"
+              git push "https://yasuo22:${GITHUB_SYNC_TOKEN}@github.com/${GH_OWNER}/${GH_TARGET}.git" --delete main 2>&1 || echo "==> 目标仓库 main 分支删除失败或不存在"
+            else
+              echo "==> 目标仓库 ${GH_OWNER}/${GH_TARGET} 尚不存在（${CODE}），准备创建"
+              curl -s -X POST -H "Authorization: token ${GITHUB_SYNC_TOKEN}" \
+                https://api.github.com/user/repos \
+                -d "{\"name\":\"${GH_TARGET}\",\"private\":false,\"description\":\"DevPet ChatGPT 插件（独立项目）\"}" || true
+            fi
+
+            echo "==> [2/4] 将 chatgpt-plugin/ 目录作为独立仓库提交"
             cd chatgpt-plugin
             rm -rf .git
             git init -q
             git config user.email "cnb@cnb.cool"
             git config user.name "CNB Sync"
             git add -A
-            git commit -q -m "chore: 同步 chatgpt-plugin 独立项目"
-            echo "==> 检查/创建目标 GitHub 仓库 yasuo22/devpet-chatgpt-plugin"
-            curl -s -o /dev/null -w "%{http_code}" https://api.github.com/repos/yasuo22/devpet-chatgpt-plugin || true
-            echo ""
-            echo "==> 推送 chatgpt-plugin 到 GitHub main 分支"
-            git push https://yasuo22:${GITHUB_SYNC_TOKEN}@github.com/yasuo22/devpet-chatgpt-plugin.git HEAD:main 2>&1 || echo "==> 推送失败，请确认 GitHub 仓库 yasuo22/devpet-chatgpt-plugin 已创建"
+            git commit -q -m "chore: 同步 chatgpt-plugin 独立项目到 github.com/yasuo22/chatgpt-petplugin"
+
+            echo "==> [3/4] 确认目标仓库已就绪"
+            for i in 1 2 3; do
+              CODE=$(curl -s -o /dev/null -w "%{http_code}" ${GH_API})
+              echo "==> 检查 ${GH_OWNER}/${GH_TARGET}: ${CODE}"
+              [ "$CODE" = "200" ] && break
+              sleep 2
+            done
+
+            echo "==> [4/4] 推送 chatgpt-plugin 到 GitHub main 分支"
+            git push "https://yasuo22:${GITHUB_SYNC_TOKEN}@github.com/${GH_OWNER}/${GH_TARGET}.git" HEAD:main 2>&1 || echo "==> 推送失败，请确认 GitHub 仓库 ${GH_OWNER}/${GH_TARGET} 已创建且 token 具备 repo 权限"
             echo "==> chatgpt-plugin 同步完成"
+
+            # 最后清理 git 全局 credential helper 配置，避免残留
+            git config --global --unset credential.helper 2>/dev/null || true
   pull_request:
     - name: devpet-build
       runner:
