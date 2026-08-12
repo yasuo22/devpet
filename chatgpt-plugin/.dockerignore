@@ -1,0 +1,5 @@
+node_modules
+.env
+.devpet-store.json
+.git
+*.log

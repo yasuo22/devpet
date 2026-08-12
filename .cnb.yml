@@ -26,6 +26,11 @@
             for f in devpet/js/*.js; do
               node --check "$f" || exit 1
             done
+            echo "==> 校验 chatgpt-plugin/ 后端 JS 语法"
+            node --check chatgpt-plugin/server.js || exit 1
+            node --check chatgpt-plugin/test.js || exit 1
+            echo "==> 校验 JSON/YAML 配置"
+            node -e "for (const f of ['chatgpt-plugin/package.json','chatgpt-plugin/manifest.json','chatgpt-plugin/vercel.json']) JSON.parse(require('fs').readFileSync(f)); console.log('JSON OK')"
             echo "==> 全部模块语法通过"
         - name: build-web
           script: |
@@ -56,6 +61,26 @@
             echo "==> 同步所有 Release Tag 到 GitHub"
             git push --tags github 2>&1
             echo "==> 同步完成"
+        - name: 同步 chatgpt-plugin 到 GitHub 独立仓库
+          script: |
+            set -e
+            command -v git >/dev/null 2>&1 || { echo "==> 镜像缺少 git，安装中"; apt-get update -qq && apt-get install -y -qq git >/dev/null 2>&1; }
+            echo "==> 配置 GitHub 认证（不打印 token）"
+            git config --global credential.helper '!f() { echo "username=yasuo22"; echo "password=${GITHUB_SYNC_TOKEN}"; }; f'
+            echo "==> 将 chatgpt-plugin/ 目录作为独立仓库推送到 github.com/yasuo22/devpet-chatgpt-plugin"
+            cd chatgpt-plugin
+            rm -rf .git
+            git init -q
+            git config user.email "cnb@cnb.cool"
+            git config user.name "CNB Sync"
+            git add -A
+            git commit -q -m "chore: 同步 chatgpt-plugin 独立项目"
+            echo "==> 检查/创建目标 GitHub 仓库 yasuo22/devpet-chatgpt-plugin"
+            curl -s -o /dev/null -w "%{http_code}" https://api.github.com/repos/yasuo22/devpet-chatgpt-plugin || true
+            echo ""
+            echo "==> 推送 chatgpt-plugin 到 GitHub main 分支"
+            git push https://yasuo22:${GITHUB_SYNC_TOKEN}@github.com/yasuo22/devpet-chatgpt-plugin.git HEAD:main 2>&1 || echo "==> 推送失败，请确认 GitHub 仓库 yasuo22/devpet-chatgpt-plugin 已创建"
+            echo "==> chatgpt-plugin 同步完成"
   pull_request:
     - name: devpet-build
       runner:

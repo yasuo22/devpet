@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "DevPet",
+  "name_for_model": "devpet",
+  "description_for_human": "DevPet 开发者桌面宠物插件，提供天气、行情、汇率、GitHub 作品/贡献、宠物状态、猫粮与番茄钟能力。",
+  "description_for_model": "DevPet plugin for ChatGPT. Provides weather (with forecast), stock/crypto quotes, FX conversion, GitHub user repos & contributions heatmap, pet (DevPet mascot) config & catfood wallet, codex token reporting, pet feeding/renaming, and pomodoro plan. Use this plugin when the user asks about DevPet, pet status, weather, market quotes, FX, GitHub portfolio, contributions, or pomodoro.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "http://localhost:8787/openapi.json"
+  },
+  "logo_url": "https://cnb.cool/uzi999-2026/DevPet/-/raw/main/devpet/assets/favicon.svg",
+  "contact_email": "devpet@example.com",
+  "legal_info_url": "https://cnb.cool/uzi999-2026/DevPet"
+}

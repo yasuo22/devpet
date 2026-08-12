@@ -1,0 +1,159 @@
+openapi: 3.1.0
+info:
+  title: DevPet Plugin
+  version: 1.1.0
+  description: >-
+    DevPet 开发者桌面宠物插件 —— 提供天气、股票/加密货币行情、汇率换算、
+    GitHub 作品/贡献热图、宠物状态/猫粮、Codex token 上报与番茄钟等能力，供 ChatGPT 直接调用。
+servers:
+  - url: http://localhost:8787
+paths:
+  /weather:
+    get:
+      operationId: getWeather
+      summary: 查询天气（含未来5天预报）
+      parameters:
+        - name: city
+          in: query
+          schema: { type: string }
+          description: 城市名，如 深圳
+        - name: unit
+          in: query
+          schema: { type: string, enum: [c, f] }
+          description: 温度单位：c=摄氏 f=华氏
+      responses:
+        '200': { description: 天气信息 }
+  /market/crypto:
+    get:
+      operationId: getCrypto
+      summary: 加密货币行情
+      parameters:
+        - name: ids
+          in: query
+          schema: { type: string }
+          description: 币种 id 逗号分隔，如 bitcoin,ethereum
+      responses:
+        '200': { description: 加密行情 }
+  /market/stock:
+    get:
+      operationId: getStock
+      summary: 股票行情
+      parameters:
+        - name: symbols
+          in: query
+          schema: { type: string }
+          description: 股票代码逗号分隔，如 AAPL,TSLA
+      responses:
+        '200': { description: 股票行情 }
+  /fx:
+    get:
+      operationId: getFx
+      summary: 汇率换算
+      parameters:
+        - name: from
+          in: query
+          schema: { type: string }
+          description: 基准货币，如 USD
+        - name: to
+          in: query
+          schema: { type: string }
+          description: 目标货币，如 CNY
+      responses:
+        '200': { description: 汇率 }
+  /github:
+    get:
+      operationId: getGithub
+      summary: GitHub 用户作品/贡献/最近活动
+      parameters:
+        - name: user
+          in: query
+          schema: { type: string }
+          description: GitHub 用户名
+      responses:
+        '200': { description: GitHub 数据 }
+  /github/contributions:
+    get:
+      operationId: getGithubContributions
+      summary: GitHub 用户贡献热图
+      parameters:
+        - name: user
+          in: query
+          schema: { type: string }
+          description: GitHub 用户名
+      responses:
+        '200': { description: 贡献热图数据 }
+  /pet/config:
+    get:
+      operationId: getPetConfig
+      summary: 宠物配置与主题预设
+      responses:
+        '200': { description: 宠物配置 }
+  /pet/status:
+    get:
+      operationId: getPetStatus
+      summary: 宠物完整状态
+      responses:
+        '200': { description: 宠物状态 }
+  /pet/wallet:
+    get:
+      operationId: getWallet
+      summary: 猫粮钱包与成长状态
+      responses:
+        '200': { description: 钱包状态 }
+  /pet/report-token:
+    post:
+      operationId: reportToken
+      summary: 上报 Codex token 消耗
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tokens: { type: number }
+              required: [tokens]
+      responses:
+        '200': { description: 上报结果 }
+  /pet/feed:
+    post:
+      operationId: feedPet
+      summary: 投喂猫粮（消耗 token）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tier: { type: string, enum: [basic, salmon, tuna, wagyu] }
+                payWithTokens: { type: boolean }
+      responses:
+        '200': { description: 投喂结果 }
+  /pet/rename:
+    post:
+      operationId: renamePet
+      summary: 给宠物改名
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+              required: [name]
+      responses:
+        '200': { description: 改名结果 }
+  /pomodoro:
+    get:
+      operationId: getPomodoro
+      summary: 番茄钟计划
+      responses:
+        '200': { description: 番茄钟计划 }
+  /health:
+    get:
+      operationId: health
+      summary: 健康检查
+      responses:
+        '200': { description: ok }
